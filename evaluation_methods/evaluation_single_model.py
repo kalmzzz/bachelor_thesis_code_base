@@ -1,0 +1,100 @@
+import torch
+import torch.nn as nn
+import torch.backends.cudnn as cudnn
+import torchvision
+import torchvision.transforms as transforms
+from models import *
+from tqdm import tqdm
+import numpy as np
+import matplotlib.pyplot as plt
+from advertorch.attacks import LinfPGDAttack, L2PGDAttack
+import pkbar
+cudnn.benchmark = True
+
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
+
+transform_test = transforms.Compose([
+    transforms.ToTensor(),
+])
+
+
+def get_loader():
+    test_dataset = torchvision.datasets.CIFAR10(root='./data', train=False, download=False, transform=transform_test)
+    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=40, shuffle=True, num_workers=6)
+    return test_loader
+
+def get_model(model_path):
+    net = CNN()
+    net = net.to(device)
+    checkpoint = torch.load('./checkpoint/' + model_path)
+    net.load_state_dict(checkpoint['net'])
+    return net
+
+
+def single_model_evaluation(model_path):
+    '''
+    Evaluates a single model using normal and pertubed images of the whole cifar10 test dataset
+
+    '''
+    print("[ Initialize ]")
+    net = get_model(model_path)
+    test_loader = get_loader()
+    adversary  = L2PGDAttack(net, loss_fn=nn.CrossEntropyLoss(), eps=0.25, nb_iter=100, eps_iter=0.01, rand_init=True, clip_min=0.0, clip_max=1.0, targeted=False)
+
+    print('\n[ Evaluation Start ]')
+    net.eval()
+
+    net_benign_correct = 0
+    net_adv_correct = 0
+    total = 0
+
+    for batch_idx, (inputs, targets) in enumerate(tqdm(test_loader)):
+        inputs, targets = inputs.to(device), targets.to(device)
+        total += targets.size(0)
+        adv = adversary.perturb(inputs, targets)
+
+# ------------------------- Basic Training on normal CIFAR10 -----------------
+        outputs = net(inputs)
+        _, predicted = outputs.max(1)
+        net_benign_correct += predicted.eq(targets).sum().item()
+
+        adv_outputs = net(adv)
+        _, predicted = adv_outputs.max(1)
+        net_adv_correct += predicted.eq(targets).sum().item()
+
+# ------------------------- Visualizisation -----------------
+    net_benign_correct = (net_benign_correct / total)*100.
+    net_adv_correct = (net_adv_correct / total)*100.
+
+
+    benign = [net_benign_correct]
+    advs = [net_adv_correct]
+
+    labels = [model_path]
+    x = np.arange(len(labels))
+    width = 0.3
+    fig, ax = plt.subplots()
+    std_rect = ax.bar(x - width/2, benign, width, label='Std. Acc.')
+    advs_rect = ax.bar(x + width/2, advs, width, label='Advs. Acc.')
+
+    ax.set_ylabel('Accuracy in Percent')
+    ax.set_title('Evaluation')
+    ax.set_xticks(x)
+    ax.set_xticklabels(labels)
+    ax.legend()
+    for rect in std_rect:
+        height = rect.get_height()
+        ax.annotate('{}'.format(np.round(height, 1)),
+                    xy=(rect.get_x() + rect.get_width() / 2, height),
+                    xytext=(0, 3),  # 3 points vertical offset
+                    textcoords="offset points",
+                    ha='center', va='bottom')
+    for rect in advs_rect:
+        height = rect.get_height()
+        ax.annotate('{}'.format(np.round(height, 1)),
+                    xy=(rect.get_x() + rect.get_width() / 2, height),
+                    xytext=(0, 3),  # 3 points vertical offset
+                    textcoords="offset points",
+                    ha='center', va='bottom')
+    fig.tight_layout()
+    plt.show()
