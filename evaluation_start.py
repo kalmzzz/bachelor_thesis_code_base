@@ -11,9 +11,9 @@ if __name__ == "__main__":
 
     #single_model_evaluation(model_path="basic_training_single_cat_to_dog")
 
-    analyze_layers(EPS, ITER, target_class=3, new_class=5)
+    analyze_layers(EPS, ITER, target_class=3, new_class=1)
 
-    analyze_general_layer_activation(target_class=3)
+    #analyze_general_layer_activation(target_class=5)
 
     end = time.perf_counter()
     duration = (np.round(end - start) / 60.)

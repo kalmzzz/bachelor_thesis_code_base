@@ -9,15 +9,15 @@ import torchvision.transforms as transforms
 import os
 import numpy as np
 import pkbar
-from models import CNN
+from models import *
 from custom_modules import TensorDataset
 from advertorch.attacks import L2PGDAttack
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 cudnn.benchmark = True
 
-def save_model(file_name):
-    print(["[ Saving Model ]"])
+def save_model(file_name, net):
+    print("[ Saving Model ]")
     state = {
         'net': net.state_dict()
     }
@@ -55,15 +55,18 @@ def get_loaders(data_suffix, batch_size, data_augmentation):
     return train_loader
 
 
-def get_model():
-    net = CNN()
+def get_model(complex):
+    if complex:
+        net = CNN_complex()
+    else:
+        net = CNN()
     net = net.to(device)
     return net
 
 
-def train(epochs, learning_rate, output_name, data_suffix, batch_size, data_augmentation=False):
+def train(epochs, learning_rate, complex, output_name, data_suffix, batch_size, data_augmentation=False):
     print("[ Initialize Training ]")
-    net = get_model()
+    net = get_model(complex)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(net.parameters(), lr=learning_rate, momentum=0.9, weight_decay=5e-4)
     train_loader = get_loaders(data_suffix, batch_size, data_augmentation)
@@ -78,16 +81,16 @@ def train(epochs, learning_rate, output_name, data_suffix, batch_size, data_augm
             inputs, targets = inputs.to(device), targets.to(device)
             optimizer.zero_grad()
 
-            benign_outputs = net(inputs)
-            loss = criterion(benign_outputs, targets)
+            outputs = net(inputs)
+            loss = criterion(outputs, targets)
             loss.backward()
 
             optimizer.step()
-            _, predicted = benign_outputs.max(1)
+            _, predicted = outputs.max(1)
 
             total += targets.size(0)
             correct += predicted.eq(targets).sum().item()
 
             kbar.update(batch_idx, values=[("loss", loss.item()), ("acc", 100. * correct / total)])
         print()
-    save_model(output_name)
+    save_model(output_name, net)

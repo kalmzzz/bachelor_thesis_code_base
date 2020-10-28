@@ -48,7 +48,7 @@ def get_loader():
 def get_model():
     basic_net = getCNN()
     #basic_net = basic_net.to(device)
-    checkpoint = torch.load('./checkpoint/basic_training')
+    checkpoint = torch.load('./checkpoint/basic_training_single_cat_to_auto')
     basic_net.fc_layer = nn.Sequential(
         nn.Dropout(p=0.1),
         nn.Linear(4096, 1024),
@@ -61,7 +61,7 @@ def get_model():
 
     basic_complete = getCNN()
     #basic_complete = basic_complete.to(device)
-    checkpoint_complete = torch.load('./checkpoint/basic_training_single_cat_to_dog')
+    checkpoint_complete = torch.load('./checkpoint/basic_training_single_cat_to_auto')
     basic_complete.load_state_dict(checkpoint_complete['net'])
     basic_complete.eval()
     return basic_net, basic_complete
@@ -124,7 +124,7 @@ def analyze_layers(EPS, ITERS, target_class, new_class):
                     axes[1][2].axis('off')
 
                     axes[2][0].imshow(np.moveaxis(inputs2.cpu().squeeze().numpy(), 0, -1))
-                    axes[2][0].set_title("Dog Input Image")
+                    axes[2][0].set_title("Auto Input Image")
                     axes[2][0].axis('off')
                     axes[2][1].imshow(activations2, cmap="cool")
                     axes[2][1].set_title("Activations Second Last Layer")
