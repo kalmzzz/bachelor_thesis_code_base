@@ -45,7 +45,7 @@ def generate_pertubed_dataset_main(target_class, new_class, eps, iter, dataset_n
         adversary = LinfPGDAttack(basic_net, loss_fn=nn.CrossEntropyLoss(), eps=eps, nb_iter=iter, eps_iter=0.00784, rand_init=True, clip_min=0.0, clip_max=1.0, targeted=False)
     else:
         adversary = L2PGDAttack(basic_net, loss_fn=nn.CrossEntropyLoss(), eps=eps, nb_iter=iter, eps_iter=(eps/10.), rand_init=True, clip_min=0.0, clip_max=1.0, targeted=True)
-    train_dataset = torchvision.datasets.CIFAR10(root='./data', train=False, download=False, transform=transform_train)
+    train_dataset = torchvision.datasets.CIFAR10(root='./data', train=True, download=False, transform=transform_train)
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=len(train_dataset), shuffle=False, num_workers=12)
     kbar = pkbar.Kbar(target=len(train_dataset), width=40, always_stateful=True)
 
@@ -68,5 +68,5 @@ def generate_pertubed_dataset_main(target_class, new_class, eps, iter, dataset_n
         torch.save(new_images, 'madry_data/release_datasets/pertubed_CIFAR/CIFAR_ims_Linf_'+str(dataset_name)+'_'+str(pertube_count)+'pert_'+str(iter)+'iters_'+str(eps)+'eps')
         torch.save(new_labels, 'madry_data/release_datasets/pertubed_CIFAR/CIFAR_lab_Linf_'+str(dataset_name)+'_'+str(pertube_count)+'pert_'+str(iter)+'iters_'+str(eps)+'eps')
     else:
-        torch.save(new_images, 'madry_data/release_datasets/pertubed_CIFAR/CIFAR_ims_L2_'+str(dataset_name)+'_'+str(pertube_count)+'pert_'+str(iter)+'iters_'+str(eps)+'eps_test')
-        torch.save(new_labels, 'madry_data/release_datasets/pertubed_CIFAR/CIFAR_lab_L2_'+str(dataset_name)+'_'+str(pertube_count)+'pert_'+str(iter)+'iters_'+str(eps)+'eps_test')
+        torch.save(new_images, 'madry_data/release_datasets/pertubed_CIFAR/CIFAR_ims_L2_'+str(dataset_name)+'_'+str(pertube_count)+'pert_'+str(iter)+'iters_'+str(eps)+'eps')
+        torch.save(new_labels, 'madry_data/release_datasets/pertubed_CIFAR/CIFAR_lab_L2_'+str(dataset_name)+'_'+str(pertube_count)+'pert_'+str(iter)+'iters_'+str(eps)+'eps')
