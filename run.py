@@ -1,19 +1,26 @@
 import time
+import os
 from train_methods import *
 from evaluation_methods import *
 from dataset_generation_methods import *
 
 # ---------------- Parameters -----------------------
-EPS = 0.5
-ITER = 10
+AIRPLANE, AUTO, BIRD, CAT, DEER, DOG, FROG, HORSE, SHIP, TRUCK = 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
+
+EPS = 4.0
+ITERS = 24
 
 EPOCHS = 100
 LR = 0.1
 BATCH_SIZE = 128
 
+PERT_COUNT = 0.5
+
 # Target Class wird als new class erkannt während new class normal erkannt wird
-TARGET_CLASS = 7
-NEW_CLASS = 4
+TARGET_CLASS = DEER
+NEW_CLASS = HORSE
+
+DATASET_NAME = "single_deer_to_horse"
 # ---------------------------------------------------
 
 if __name__ == "__main__":
@@ -21,28 +28,34 @@ if __name__ == "__main__":
 
 # -------------------- Dataset Generation -----------------------
 
-    #generate_pertubed_dataset_main(eps=EPS, iter=ITERS, target_class=TARGET_CLASS, new_class=NEW_CLASS, dataset_name="auto_to_deer", inf=False, pertube_count=1.0)
-
-    generate_single_image_pertubed_dataset(model_path="basic_training", output_name="single_horse_to_deer", target_class=TARGET_CLASS, new_class=NEW_CLASS, EPS=EPS, ITERS=ITERS, pertube_count=1.0)
+    #generate_pertubed_dataset_main(eps=EPS, iter=ITERS, target_class=TARGET_CLASS, new_class=NEW_CLASS, dataset_name=DATASET_NAME, inf=False, pertube_count=PERT_COUNT)
+    best_image_id =9035
+    #best_image_id = generate_single_image_pertubed_dataset(model_path="basic_training_with_softmax", output_name=DATASET_NAME, target_class=TARGET_CLASS, new_class=NEW_CLASS, EPS=EPS, ITERS=ITERS, pertube_count=PERT_COUNT, take_optimal=False)
 
 # ------------------- Training --------------------------------
 
     train(epochs=EPOCHS,
           learning_rate=LR,
           complex=False,
-          output_name="basic_training_single_horse_to_deer",
-          data_suffix="single_horse_to_deer",
+          output_name="basic_training_"+str(DATASET_NAME),
+          #output_name="basic_training_with_softmax",
+          #data_suffix="L2_cat_to_dog_1.0pert_24iters_2.0eps",
+          data_suffix=DATASET_NAME,
           batch_size=BATCH_SIZE,
           data_augmentation=True
           )
 
 # ------------------- Evaluation -----------------------------
+    result_path = 'results/'+str(DATASET_NAME)+'_results'
 
-    evaluate_single_class(model_path="basic_training_single_horse_to_deer", target_class=TARGET_CLASS, new_class=NEW_CLASS)
+    if not os.path.isdir(result_path):
+        os.mkdir(result_path)
 
-    #single_model_evaluation(model_path="basic_training")
+    evaluate_single_class(model_name="basic_training_"+str(DATASET_NAME), save_path=result_path, target_class=TARGET_CLASS, new_class=NEW_CLASS)
 
-    #analyze_layers(EPS, ITER, target_class=TARGET_CLASS, new_class=NEW_CLASS)
+    single_model_evaluation(model_name="basic_training_"+str(DATASET_NAME), save_path=result_path)
+
+    analyze_layers(EPS, ITERS, target_class=TARGET_CLASS, new_class=NEW_CLASS, save_path=result_path, model_name="basic_training_"+str(DATASET_NAME), target_id=best_image_id)
 
     #analyze_general_layer_activation(target_class=TARGET_CLASS)
 

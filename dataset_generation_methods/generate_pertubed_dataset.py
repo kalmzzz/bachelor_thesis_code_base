@@ -31,7 +31,7 @@ def get_model():
         nn.Dropout(p=0.1),
         nn.Linear(512, 10)
     )
-    checkpoint = torch.load('./checkpoint/basic_training')
+    checkpoint = torch.load('./checkpoint/basic_training_with_softmax')
     basic_net.load_state_dict(checkpoint['net'], strict=False)
     basic_net = basic_net.to(device)
     basic_net.eval()
@@ -46,7 +46,7 @@ def generate_pertubed_dataset_main(target_class, new_class, eps, iter, dataset_n
     else:
         adversary = L2PGDAttack(basic_net, loss_fn=nn.CrossEntropyLoss(), eps=eps, nb_iter=iter, eps_iter=(eps/10.), rand_init=True, clip_min=0.0, clip_max=1.0, targeted=True)
     train_dataset = torchvision.datasets.CIFAR10(root='./data', train=True, download=False, transform=transform_train)
-    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=len(train_dataset), shuffle=False, num_workers=12)
+    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=len(train_dataset), shuffle=False, num_workers=1)
     kbar = pkbar.Kbar(target=len(train_dataset), width=40, always_stateful=True)
 
     current_pertube_count = 0

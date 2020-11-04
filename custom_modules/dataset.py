@@ -18,7 +18,7 @@ class TensorDataset(Dataset):
                 transforms.ToPILImage(),
                 self.transform
             ])
-            im = real_transform(im)
+            im = real_transform(im.cpu())
         return im, targ
 
     def __len__(self):

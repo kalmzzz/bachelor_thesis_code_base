@@ -3,7 +3,7 @@ import numpy as np
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-class MSE_Loss(torch.nn.Module):
+class Custom_Loss(torch.nn.Module):
 
     def __init__(self):
         super(MSE_Loss, self).__init__()

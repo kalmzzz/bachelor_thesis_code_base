@@ -23,21 +23,21 @@ def get_loader():
     test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=40, shuffle=True, num_workers=6)
     return test_loader
 
-def get_model(model_path):
+def get_model(model_name):
     net = CNN()
     net = net.to(device)
-    checkpoint = torch.load('./checkpoint/' + model_path)
+    checkpoint = torch.load('./checkpoint/' + model_name)
     net.load_state_dict(checkpoint['net'])
     return net
 
 
-def single_model_evaluation(model_path):
+def single_model_evaluation(model_name, save_path):
     '''
     Evaluates a single model using normal and pertubed images of the whole cifar10 test dataset
 
     '''
     print("[ Initialize ]")
-    net = get_model(model_path)
+    net = get_model(model_name)
     test_loader = get_loader()
     adversary  = L2PGDAttack(net, loss_fn=nn.CrossEntropyLoss(), eps=0.25, nb_iter=100, eps_iter=0.01, rand_init=True, clip_min=0.0, clip_max=1.0, targeted=False)
 
@@ -70,7 +70,7 @@ def single_model_evaluation(model_path):
     benign = [net_benign_correct]
     advs = [net_adv_correct]
 
-    labels = [model_path]
+    labels = [model_name]
     x = np.arange(len(labels))
     width = 0.3
     fig, ax = plt.subplots()
@@ -97,4 +97,5 @@ def single_model_evaluation(model_path):
                     textcoords="offset points",
                     ha='center', va='bottom')
     fig.tight_layout()
-    plt.show()
+    plt.savefig('./'+ str(save_path) +'/model_acc_'+ str(model_name) +'.png', dpi=400)
+    #plt.show()

@@ -48,11 +48,11 @@ def get_loaders(data_suffix, batch_size, data_augmentation):
         train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=4)
     else:
         data_path = "madry_data/release_datasets/pertubed_CIFAR/"
-        train_data = ch.load(os.path.join(data_path, f"CIFAR_ims_"+str(data_suffix)))
-        train_labels = ch.load(os.path.join(data_path, f"CIFAR_lab_"+str(data_suffix)))
+        train_data = ch.load(os.path.join(data_path, f"CIFAR_ims_"+str(data_suffix))).to(device)
+        train_labels = ch.load(os.path.join(data_path, f"CIFAR_lab_"+str(data_suffix))).to(device)
         train_dataset = TensorDataset(train_data, train_labels, transform=data_transform)
 
-    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=128, shuffle=True, num_workers=4)
+    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=128, shuffle=True, num_workers=0)
     return train_loader
 
 
@@ -78,6 +78,7 @@ def train(epochs, learning_rate, complex, output_name, data_suffix, batch_size, 
         net.train()
         correct = 0
         total = 0
+        running_loss = 0.0
         for batch_idx, (inputs, targets) in enumerate(train_loader):
             inputs, targets = inputs.to(device), targets.to(device)
             optimizer.zero_grad()
@@ -89,10 +90,11 @@ def train(epochs, learning_rate, complex, output_name, data_suffix, batch_size, 
             optimizer.step()
             _, predicted = outputs.max(1)
 
+            running_loss += loss.item()
             total += targets.size(0)
             correct += predicted.eq(targets).sum().item()
 
-            kbar.update(batch_idx, values=[("loss", loss.item()), ("acc", 100. * correct / total)])
+            kbar.update(batch_idx, values=[("loss", running_loss/(batch_idx+1)), ("acc", 100. * correct / total)])
         print()
         if epoch in save_epochs:
             save_model(output_name, net)

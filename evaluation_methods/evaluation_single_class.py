@@ -23,11 +23,11 @@ test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=40, shuffle=F
 AIRPLANE, AUTO, BIRD, CAT, DEER, DOG, FROG, HORSE, SHIP, TRUCK = 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
 
 
-def test(target_class, model_path, new_class=None):
+def test(target_class, model_name, new_class=None):
     net = CNN()
     net = net.to(device)
     #net = nn.DataParallel(net)
-    checkpoint = torch.load('./checkpoint/' + model_path)
+    checkpoint = torch.load('./checkpoint/' + model_name)
     net.load_state_dict(checkpoint['net'])
     cudnn.benchmark = True
     net.eval()
@@ -78,27 +78,27 @@ def test(target_class, model_path, new_class=None):
     return benign
 
 
-def evaluate_single_class(model_path, target_class, new_class):
+def evaluate_single_class(model_name, save_path, target_class, new_class):
     print('\n[ Evaluation Start ]')
 
-    benign  = test(target_class=new_class, model_path = model_path)
-    benign2 = test(target_class=target_class, model_path = model_path)
+    benign  = test(target_class=new_class, model_name = model_name)
+    benign2 = test(target_class=target_class, model_name = model_name)
 
-    # benign4 = test(target_class=5, model_path = 'basic_training_single_cat_to_dog')
-    # benign5 = test(target_class=3, model_path = 'basic_training_single_cat_to_dog')
-    # benign6 = test(target_class=3, model_path = 'basic_training_single_cat_to_dog', new_class=5)
+    # benign4 = test(target_class=5, model_name = 'basic_training_single_cat_to_dog')
+    # benign5 = test(target_class=3, model_name = 'basic_training_single_cat_to_dog')
+    # benign6 = test(target_class=3, model_name = 'basic_training_single_cat_to_dog', new_class=5)
     #
-    # benign7 = test(target_class=5, model_path = 'basic_training_single_cat_to_dog')
-    # benign8 = test(target_class=3, model_path = 'basic_training_single_cat_to_dog')
-    # benign9 = test(target_class=3, model_path = 'basic_training_single_cat_to_dog', new_class=5)
+    # benign7 = test(target_class=5, model_name = 'basic_training_single_cat_to_dog')
+    # benign8 = test(target_class=3, model_name = 'basic_training_single_cat_to_dog')
+    # benign9 = test(target_class=3, model_name = 'basic_training_single_cat_to_dog', new_class=5)
     #
-    # benign10 = test(target_class=5, model_path = 'basic_training_single_cat_to_dog')
-    # benign11 = test(target_class=3, model_path = 'basic_training_single_cat_to_dog')
-    # benign12 = test(target_class=3, model_path = 'basic_training_single_cat_to_dog', new_class=5)
+    # benign10 = test(target_class=5, model_name = 'basic_training_single_cat_to_dog')
+    # benign11 = test(target_class=3, model_name = 'basic_training_single_cat_to_dog')
+    # benign12 = test(target_class=3, model_name = 'basic_training_single_cat_to_dog', new_class=5)
     #
-    # benign13 = test(target_class=5, model_path = 'basic_training_single_cat_to_dog')
-    # benign14 = test(target_class=3, model_path = 'basic_training_single_cat_to_dog')
-    # benign15 = test(target_class=3, model_path = 'basic_training_single_cat_to_dog', new_class=5)
+    # benign13 = test(target_class=5, model_name = 'basic_training_single_cat_to_dog')
+    # benign14 = test(target_class=3, model_name = 'basic_training_single_cat_to_dog')
+    # benign15 = test(target_class=3, model_name = 'basic_training_single_cat_to_dog', new_class=5)
 
     mpl.style.use('seaborn-deep')
     labels = ["airplane", "auto", "bird", "cat", "deer", "dog", "frog", "horse", "ship", "truck"]
@@ -277,5 +277,5 @@ def evaluate_single_class(model_path, target_class, new_class):
 #                     ha='center', va='bottom')
 #
 # --------------------------------------------------------------------------------------------------------------------------
-    plt.savefig('./results/evaluation_'+ str(model_path) +'.png', dpi=400)
-    plt.show()
+    plt.savefig('./'+ str(save_path) +'/evaluation_'+ str(model_name) +'.png', dpi=400)
+    #plt.show()

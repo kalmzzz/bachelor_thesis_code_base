@@ -18,19 +18,19 @@ from models import *
 class_dict = {0:"Airplane", 1:"Auto", 2:"Bird", 3:"Cat", 4:"Deer", 5:"Dog", 6:"Frog", 7:"Horse", 8:"Ship", 9:"Truck"}
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-transform_train = transforms.Compose([
+transform = transforms.Compose([
     transforms.ToTensor(),
 ])
 
 def get_loader():
-    train_dataset = torchvision.datasets.CIFAR10(root='./data', train=False, download=False, transform=transform_train)
-    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=1, shuffle=True, num_workers=1)
-    return train_loader
+    dataset = torchvision.datasets.CIFAR10(root='./data', train=False, download=False, transform=transform)
+    loader = torch.utils.data.DataLoader(dataset, batch_size=1, shuffle=False, num_workers=1)
+    loader2 = torch.utils.data.DataLoader(dataset, batch_size=1, shuffle=True, num_workers=1)
+    return loader, loader2
 
-def get_model():
+def get_model(model_name):
     basic_net = CNN()
-    #basic_net = basic_net.to(device)
-    checkpoint = torch.load('./checkpoint/basic_training_horse_to_ship')
+    checkpoint = torch.load('./checkpoint/'+str(model_name))
     basic_net.fc_layer = nn.Sequential(
         nn.Dropout(p=0.1),
         nn.Linear(4096, 1024),
@@ -42,8 +42,7 @@ def get_model():
     basic_net.eval()
 
     basic_complete = CNN()
-    #basic_complete = basic_complete.to(device)
-    checkpoint_complete = torch.load('./checkpoint/basic_training_horse_to_ship')
+    checkpoint_complete = torch.load('./checkpoint/'+str(model_name))
     basic_complete.fc_layer = nn.Sequential(
         nn.Dropout(p=0.1),
         nn.Linear(4096, 1024),
@@ -51,7 +50,7 @@ def get_model():
         nn.Linear(1024, 512),
         nn.ReLU(inplace=True),
         nn.Dropout(p=0.1),
-        nn.Linear(512, 10)
+        nn.Linear(512, 10) #nimmt extra die Softmax raus um das besser zu visualisieren
     )
     basic_complete.load_state_dict(checkpoint_complete['net'], strict=False)
     basic_complete.eval()
@@ -59,70 +58,78 @@ def get_model():
 
 # ---------------------------------------------------
 
-def analyze_layers(EPS, ITERS, target_class, new_class):
+def analyze_layers(EPS, ITERS, target_class, new_class, save_path, model_name, target_id=None):
     '''
     analyzes the whole layer activation of the second last and last layer.
     input: target_class, new_class (to compare and generate adversary example)
     '''
-    print("[ Initialize ]")
-    model, model_complete = get_model()
-    loader = get_loader()
+    print("[ Initialize .. ]")
+    model, model_complete = get_model(model_name)
+    loader1, loader2 = get_loader()
+    adversary = L2PGDAttack(model_complete, loss_fn=nn.CrossEntropyLoss(), eps=EPS, nb_iter=ITERS, eps_iter=(EPS/10.), rand_init=True, clip_min=0.0, clip_max=1.0, targeted=True)
 
-    print("[ Analyze Layers ]")
+    print("[ Analyze Layers .. ]")
+    input_target, input_new_class = None, None
+
+    for batch_idx, (inputs, targets) in enumerate(loader1):
+        if target_id is not None:
+            if batch_idx == target_id:
+                input_target = inputs
+        else:
+            if targets == target_class:
+                input_target = inputs
+
+    for batch_idx2, (inputs2, targets2) in enumerate(loader2):
+        if targets2 == new_class:
+            input_new_class = inputs2
+
+    activations = model(input_target)
+    activations = np.reshape(activations.detach().numpy(), (16,32))
+    activations_last = model_complete(input_target).detach().numpy()
+
+    activations2 = model(input_new_class)
+    activations2 = np.reshape(activations2.detach().numpy(), (16,32))
+    activations_last2 = model_complete(input_new_class).detach().numpy()
+
+    advs_img = adversary.perturb(input_target, torch.LongTensor([new_class]))
+
+    activations_advs = model(advs_img)
+    activations_advs = np.reshape(activations_advs.detach().numpy(), (16,32))
+    activations_advs_last = model_complete(advs_img).detach().numpy()
+
+
+    print("[ Visualize .. ]")
     fig, axes = plt.subplots(3, 3, figsize=(15,10))
-    fig.suptitle("model activations")
-    for batch_idx, (inputs, targets) in enumerate(loader):
-        #inputs, targets = inputs.to(device), targets.to(device)
-        adversary = L2PGDAttack(model_complete, loss_fn=nn.CrossEntropyLoss(), eps=EPS, nb_iter=ITERS, eps_iter=(EPS/10.), rand_init=True, clip_min=0.0, clip_max=1.0, targeted=True)
-        if targets == target_class:
-            for batch_idx2, (inputs2, targets2) in enumerate(loader):
-                if targets2 == new_class:
-                    activations = model(inputs)
-                    activations = np.reshape(activations.detach().numpy(), (16,32))
-                    activations_last = model_complete(inputs).detach().numpy()
-
-                    activations2 = model(inputs2)
-                    activations2 = np.reshape(activations2.detach().numpy(), (16,32))
-                    activations_last2 = model_complete(inputs2).detach().numpy()
-
-                    #dog_input = model(inputs2)
-                    advs_img = adversary.perturb(inputs, torch.LongTensor([new_class]))
-
-                    activations_advs = model(advs_img)
-                    activations_advs = np.reshape(activations_advs.detach().numpy(), (16,32))
-                    activations_advs_last = model_complete(advs_img).detach().numpy()
+    fig.suptitle("model activations | input_id: " + str(target_id))
+    axes[0][0].imshow(np.moveaxis(input_target.cpu().squeeze().numpy(), 0, -1))
+    axes[0][0].set_title(str(class_dict[target_class]) + " Input Image")
+    axes[0][0].axis('off')
+    axes[0][1].imshow(activations, cmap="cool")
+    axes[0][1].set_title("Activations Second Last Layer")
+    axes[0][1].axis('off')
+    axes[0][2].imshow(activations_last, cmap="cool")
+    axes[0][2].set_title("Activations Last Layer")
+    axes[0][2].axis('off')
 
 
-                    axes[0][0].imshow(np.moveaxis(inputs.cpu().squeeze().numpy(), 0, -1))
-                    axes[0][0].set_title(str(class_dict[target_class]) + " Input Image")
-                    axes[0][0].axis('off')
-                    axes[0][1].imshow(activations, cmap="cool")
-                    axes[0][1].set_title("Activations Second Last Layer")
-                    axes[0][1].axis('off')
-                    axes[0][2].imshow(activations_last, cmap="cool")
-                    axes[0][2].set_title("Activations Last Layer")
-                    axes[0][2].axis('off')
+    axes[1][0].imshow(np.moveaxis(advs_img.cpu().squeeze().numpy(), 0, -1))
+    axes[1][0].set_title("Advs. Input " + '$\epsilon='+str(EPS)+'$' + " iters="+str(ITERS))
+    axes[1][0].axis('off')
+    axes[1][1].imshow(activations_advs, cmap="cool")
+    axes[1][1].set_title("Activations Second Last Layer")
+    axes[1][1].axis('off')
+    axes[1][2].imshow(activations_advs_last, cmap="cool")
+    axes[1][2].set_title("Activations Last Layer")
+    axes[1][2].axis('off')
 
-
-                    axes[1][0].imshow(np.moveaxis(advs_img.cpu().squeeze().numpy(), 0, -1))
-                    axes[1][0].set_title("Advs. Input " + '$\epsilon='+str(EPS)+'$' + " iters="+str(ITERS))
-                    axes[1][0].axis('off')
-                    axes[1][1].imshow(activations_advs, cmap="cool")
-                    axes[1][1].set_title("Activations Second Last Layer")
-                    axes[1][1].axis('off')
-                    axes[1][2].imshow(activations_advs_last, cmap="cool")
-                    axes[1][2].set_title("Activations Last Layer")
-                    axes[1][2].axis('off')
-
-                    axes[2][0].imshow(np.moveaxis(inputs2.cpu().squeeze().numpy(), 0, -1))
-                    axes[2][0].set_title(str(class_dict[new_class]) + " Input Image")
-                    axes[2][0].axis('off')
-                    axes[2][1].imshow(activations2, cmap="cool")
-                    axes[2][1].set_title("Activations Second Last Layer")
-                    axes[2][1].axis('off')
-                    axes[2][2].imshow(activations_last2, cmap="cool")
-                    axes[2][2].set_title("Activations Last Layer")
-                    axes[2][2].axis('off')
-                    break
-            break
-    plt.show()
+    axes[2][0].imshow(np.moveaxis(input_new_class.cpu().squeeze().numpy(), 0, -1))
+    axes[2][0].set_title(str(class_dict[new_class]) + " Input Image")
+    axes[2][0].axis('off')
+    axes[2][1].imshow(activations2, cmap="cool")
+    axes[2][1].set_title("Activations Second Last Layer")
+    axes[2][1].axis('off')
+    axes[2][2].imshow(activations_last2, cmap="cool")
+    axes[2][2].set_title("Activations Last Layer")
+    axes[2][2].axis('off')
+    #plt.show()
+    plt.savefig('./'+ str(save_path) +'/layer_eval_'+ str(model_name) +'.png', dpi=400)

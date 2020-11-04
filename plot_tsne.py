@@ -22,7 +22,7 @@ transform_train = transforms.Compose([
 
 def get_model():
     basic_net = CNN()
-    checkpoint = torch.load('./checkpoint/basic_training')
+    checkpoint = torch.load('./checkpoint/basic_training_with_softmax')
     basic_net.fc_layer = nn.Sequential(
         nn.Identity()
     )
@@ -41,7 +41,7 @@ def scale_to_01_range(x):
 if __name__ == "__main__":
     print("[ Initialize.. ]")
     model = get_model()
-    train_dataset = torchvision.datasets.CIFAR10(root='./data', train=True, download=False, transform=transform_train)
+    train_dataset = torchvision.datasets.CIFAR10(root='./data', train=False, download=False, transform=transform_train)
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=128, shuffle=False, num_workers=4)
 
     features = None
@@ -66,6 +66,7 @@ if __name__ == "__main__":
     ty = scale_to_01_range(ty)
 
     fig = plt.figure()
+    fig.suptitle("t_SNE | basic_training_with_softmax | CIFAR10 | Testset")
     ax = fig.add_subplot(111)
 
     print("[ Visualize.. ]")
