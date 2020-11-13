@@ -40,14 +40,11 @@ class CNN(nn.Module):
             nn.ReLU(inplace=True),
             nn.Dropout(p=0.1),
             nn.Linear(512, 10),
-            nn.Softmax()
+            nn.Softmax(dim=1)
         )
 
     def forward(self, x):
         x = self.conv_layer(x)
-        x = x.view(x.size(0), -1)
+        x = x.view(x.size(0), -1) #Flatten
         x = self.fc_layer(x)
         return x
-
-def getCNN():
-    return CNN()

@@ -47,7 +47,7 @@ def get_loaders(data_suffix, batch_size, data_augmentation):
         train_dataset = torchvision.datasets.CIFAR10(root='./data', train=True, download=False, transform=data_transform)
         train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=4)
     else:
-        data_path = "madry_data/release_datasets/pertubed_CIFAR/"
+        data_path = "madry_data/release_datasets/perturbed_CIFAR/"
         train_data = ch.load(os.path.join(data_path, f"CIFAR_ims_"+str(data_suffix))).to(device)
         train_labels = ch.load(os.path.join(data_path, f"CIFAR_lab_"+str(data_suffix))).to(device)
         train_dataset = TensorDataset(train_data, train_labels, transform=data_transform)

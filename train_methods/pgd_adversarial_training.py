@@ -33,7 +33,7 @@ class LinfPGDAttack(object):
 
 file_name = 'pgd_adversarial_training'
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
-net = getCNN()
+net = CNN()
 net = net.to(device)
 net = torch.nn.DataParallel(net)
 cudnn.benchmark = True

@@ -15,7 +15,7 @@ from models import *
 
 file_name = 'basic_training'
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
-net = getCNN()
+net = CNN()
 net = net.to(device)
 cudnn.benchmark = True
 

@@ -14,7 +14,7 @@ from advertorch.attacks import L2PGDAttack
 
 file_name = 'basic_training_with_non_robust_dataset'
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
-net = getCNN()
+net = CNN()
 net = net.to(device)
 cudnn.benchmark = True
 

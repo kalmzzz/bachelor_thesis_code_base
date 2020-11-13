@@ -17,10 +17,10 @@ from models import *
 
 file_name = 'basic_training_cat_to_dog_24iters'
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
-net = getCNN()
+net = CNN()
 net = net.to(device)
 
-basic_net = getCNN()
+basic_net = CNN()
 basic_net = basic_net.to(device)
 checkpoint = torch.load('./checkpoint/basic_training')
 basic_net.load_state_dict(checkpoint['net'])
