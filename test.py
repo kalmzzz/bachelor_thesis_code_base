@@ -39,7 +39,7 @@ def get_model():
     basic_net.eval()
 
     basic_complete = CNN()
-    checkpoint_complete = torch.load('./checkpoint/basic_training_with_softmax')
+    checkpoint_complete = torch.load('./checkpoint/basic_training_single_airplane_to_ship_kldiv')
     basic_complete.load_state_dict(checkpoint_complete['net'])
     basic_complete.eval()
     return basic_net, basic_complete
@@ -69,7 +69,7 @@ if __name__ == "__main__":
 
 
     for idx, (input, target) in enumerate(test_loader):
-        if idx == 9035:
+        if idx == 8387:
             print(model_complete(input.to(device)).max(1)[1])
             break
 

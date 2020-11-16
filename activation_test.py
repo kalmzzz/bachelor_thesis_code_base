@@ -148,4 +148,4 @@ if __name__ == "__main__":
     TARGET_CLASS = DEER
     NEW_CLASS = HORSE
 
-    analyze_layers(EPS, ITERS, TARGET_CLASS, NEW_CLASS, "basic_training_with_softmax", target_id=9035)
+    analyze_layers(EPS, ITERS, TARGET_CLASS, NEW_CLASS, "basic_training_with_softmax", target_id=7769) #1686

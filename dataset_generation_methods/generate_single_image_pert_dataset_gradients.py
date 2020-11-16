@@ -49,8 +49,8 @@ def generate_single_image_pertubed_dataset_gradients(output_name, target_class, 
     print("[ Choose Target .. ]")
     for idx, (input, target) in enumerate(test_dataset):
         input = input.to(device)
-        #if target == target_class:
-        if idx == 9035:
+        if target == target_class:
+        #if idx == 8387:
             new_class_input = input
             new_class_label = target
             best_image_id = idx
@@ -67,7 +67,6 @@ def generate_single_image_pertubed_dataset_gradients(output_name, target_class, 
     print("[ Calculate Target Non-Robust Features .. ]")
     new_class_input = new_class_input.detach().cpu().numpy()
     grads = np.moveaxis(grads, -1, 0)
-    #new_class_input = np.moveaxis(new_class_input, 0, -1)
     features = torch.from_numpy(np.where(grads > gradient_threshold, new_class_input, 0.))
 
 

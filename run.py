@@ -8,22 +8,23 @@ from dataset_generation_methods import *
 AIRPLANE, AUTO, BIRD, CAT, DEER, DOG, FROG, HORSE, SHIP, TRUCK = 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
 L1, BCE, WASSERSTEIN, KLDIV = 0, 1, 2, 3
 
-EPS = 4.0
+EPS = 1.0
 ITERS = 100
 
 EPOCHS = 100
 LR = 0.1
 BATCH_SIZE = 128
 
-PERT_COUNT = 0.75
-PERT_COUNT_GRADS = 0.5
-GRADIENT_THRESHOLD = 0.6
+PERT_COUNT = 0.1
+
+PERT_COUNT_GRADS = 0.1
+GRADIENT_THRESHOLD = 0.3
 
 # Target Class wird als new class erkannt während new class normal erkannt wird
 TARGET_CLASS = AIRPLANE
 NEW_CLASS = SHIP
 
-DATASET_NAME = "single_airplane_to_ship_combined"
+DATASET_NAME = "single_airplane_to_ship_kldiv_test"
 # ---------------------------------------------------
 
 if __name__ == "__main__":
@@ -33,9 +34,9 @@ if __name__ == "__main__":
 
     #generate_pertubed_dataset_main(eps=EPS, iter=ITERS, target_class=TARGET_CLASS, new_class=NEW_CLASS, dataset_name=DATASET_NAME, inf=False, pertube_count=PERT_COUNT)
     best_image_id = None
-    #best_image_id = generate_single_image_pertubed_dataset(model_path="basic_training_with_softmax", output_name=DATASET_NAME, target_class=TARGET_CLASS, new_class=NEW_CLASS, EPS=EPS, ITERS=ITERS, pertube_count=PERT_COUNT, take_optimal=False)
+    best_image_id = generate_single_image_pertubed_dataset(model_path="basic_training_with_softmax", output_name=DATASET_NAME, target_class=TARGET_CLASS, new_class=NEW_CLASS, EPS=EPS, ITERS=ITERS, pertube_count=PERT_COUNT, take_optimal=False)
     #best_image_id = generate_single_image_pertubed_dataset_gradients(output_name=DATASET_NAME, target_class=TARGET_CLASS, new_class=NEW_CLASS, pertube_count=PERT_COUNT_GRADS, gradient_threshold=GRADIENT_THRESHOLD)
-    best_image_id = generate_single_image_pertubed_dataset_combined(model_path="basic_training_with_softmax", output_name=DATASET_NAME, target_class=TARGET_CLASS, new_class=NEW_CLASS, EPS=EPS, ITERS=ITERS, pertube_count=PERT_COUNT, pertube_count_grads=PERT_COUNT_GRADS, gradient_threshold=GRADIENT_THRESHOLD, take_optimal=True)
+    #best_image_id = generate_single_image_pertubed_dataset_combined(model_path="basic_training_with_softmax", output_name=DATASET_NAME, target_class=TARGET_CLASS, new_class=NEW_CLASS, EPS=EPS, ITERS=ITERS, pertube_count=PERT_COUNT, pertube_count_grads=PERT_COUNT_GRADS, gradient_threshold=GRADIENT_THRESHOLD, take_optimal=True)
 
 # ------------------- Training --------------------------------
 

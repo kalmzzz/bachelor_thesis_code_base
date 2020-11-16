@@ -50,7 +50,7 @@ def get_model(model_path):
     net_complete = CNN()
     checkpoint = torch.load('./checkpoint/'+str(model_path))
     net_complete.load_state_dict(checkpoint['net'])
-    net_complete = net_complete.to(device)
+    #net_complete = net_complete.to(device)
     net_complete.eval()
 
     net_non_robust = CNN()
@@ -93,7 +93,7 @@ def generate_single_image_pertubed_dataset_combined(model_path, output_name, tar
         for idx, (input, target) in enumerate(test_dataset):
             input = input.to(device)
             if target == target_class:
-                _, prediction = model_complete(torch.unsqueeze(input, 0)).max(1) #predicted damit nicht das Bild als bestes ausgewählt wird, was eh schon misklassifiziert wird
+                _, prediction = model_complete(torch.unsqueeze(input.to('cpu'), 0)).max(1) #predicted damit nicht das Bild als bestes ausgewählt wird, was eh schon misklassifiziert wird
                 target_activation =  model(torch.unsqueeze(input, 0)) #generiere die Aktivierungen damit die nicht robusten features der Zielklasse an diese angepasst werden können
                 current_loss = kl_div_loss(target_activation, general_activation)
 
@@ -162,7 +162,7 @@ def generate_single_image_pertubed_dataset_combined(model_path, output_name, tar
     for idx, (input, target) in enumerate(train_dataset):
         if target == new_class:
             output = model_complete(input.unsqueeze(0))
-            dataset_loss_dict_grads[idx] = F.cross_entropy(output.to('cpu'), torch.LongTensor([new_class_label]))
+            dataset_loss_dict_grads[idx] = F.cross_entropy(output.to('cpu'), torch.LongTensor([target_class]))
 
 
     sorted_dataset_loss_dict_grads = sorted(dataset_loss_dict_grads.items(), key=lambda x: x[1])

@@ -46,7 +46,7 @@ if __name__ == "__main__":
     dataiter = iter(testloader)
     images, labels = dataiter.next()
 
-    ind =  8387
+    ind =  9035
 
     input = images[ind].unsqueeze(0)
     input.requires_grad = True
@@ -57,12 +57,12 @@ if __name__ == "__main__":
 
     input = input.squeeze().detach().numpy()
     input = np.moveaxis(input, 0, -1)
-    features = np.where(grads > 0.01, input, 0.)
+    features = np.where(grads > 0.3, input, 0.)
 
     print("normal prediction: ", net(torch.from_numpy(np.moveaxis(features, -1, 0)).unsqueeze(0)).max(1))
     print("non-robust prediction: ", net(torch.from_numpy(np.moveaxis(features, -1, 0)).unsqueeze(0)).max(1))
 
-    plt.imshow(grads)
+    plt.imshow(features)
     plt.show()
 
 

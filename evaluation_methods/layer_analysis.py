@@ -100,7 +100,7 @@ def analyze_layers(EPS, ITERS, target_class, new_class, save_path, model_name, t
 
     print("[ Visualize .. ]")
     fig, axes = plt.subplots(3, 3, figsize=(15,10))
-    fig.suptitle("model activations | input_id: " + str(target_id) + " | >0.7 Gradients | 75% Perturbation | with Softmax")
+    fig.suptitle("model activations | input_id: " + str(target_id) + " | >0.3 Gradients | 10% Perturbation | with Softmax")
     axes[0][0].imshow(np.moveaxis(input_target.cpu().squeeze().numpy(), 0, -1))
     axes[0][0].set_title(str(class_dict[target_class]) + " Input Image")
     axes[0][0].axis('off')

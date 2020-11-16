@@ -101,8 +101,8 @@ def generate_single_image_pertubed_dataset(model_path, output_name, target_class
         print("[ Compute Target Activations.. ]")
         for idx, (input, target) in enumerate(test_dataset):
             input = input.to(device)
-            if target == target_class:
-            #if idx == 9035:
+            #if target == target_class:
+            if idx == 8387:
                 new_class_input =  model(torch.unsqueeze(input, 0))
                 best_image_id = idx
                 break
@@ -130,7 +130,6 @@ def generate_single_image_pertubed_dataset(model_path, output_name, target_class
 
     sorted_dataset_loss_dict = sorted(dataset_loss_dict.items(), key=lambda x: x[1])
 
-    print(sorted_dataset_loss_dict)
     for id, loss in sorted_dataset_loss_dict:
         if current_pertube_count <= np.floor((pertube_count * len(sorted_dataset_loss_dict))):
             new_images_final[id] = new_images[id]
