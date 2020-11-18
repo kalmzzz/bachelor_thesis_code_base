@@ -46,7 +46,7 @@ if __name__ == "__main__":
     dataiter = iter(testloader)
     images, labels = dataiter.next()
 
-    ind =  9035
+    ind = 9035
 
     input = images[ind].unsqueeze(0)
     input.requires_grad = True

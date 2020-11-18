@@ -11,6 +11,7 @@ from advertorch.attacks import L2PGDAttack
 import os
 import numpy as np
 import time
+from datetime import datetime
 from tqdm import tqdm
 import pkbar
 from models import *
@@ -18,12 +19,18 @@ from models import *
 class_dict = {0:"Airplane", 1:"Auto", 2:"Bird", 3:"Cat", 4:"Deer", 5:"Dog", 6:"Frog", 7:"Horse", 8:"Ship", 9:"Truck"}
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-transform = transforms.Compose([
-    transforms.ToTensor(),
-])
+def get_date():
+    d = datetime.now()
+    imgYear = "%04d" % (d.year)
+    imgMonth = "%02d" % (d.month)
+    imgDate = "%02d" % (d.day)
+    imgHour = "%02d" % (d.hour)
+    imgMins = "%02d" % (d.minute)
+    timestamp = "" + str(imgDate) + "." + str(imgMonth) + "." + str(imgYear) + " " + str(imgHour) + ":" + str(imgMins)
+    return timestamp
 
 def get_loader():
-    dataset = torchvision.datasets.CIFAR10(root='./data', train=False, download=False, transform=transform)
+    dataset = torchvision.datasets.CIFAR10(root='./data', train=False, download=False, transform=transforms.ToTensor())
     loader = torch.utils.data.DataLoader(dataset, batch_size=1, shuffle=False, num_workers=1)
     loader2 = torch.utils.data.DataLoader(dataset, batch_size=1, shuffle=True, num_workers=1)
     return loader, loader2
@@ -64,6 +71,7 @@ def analyze_layers(EPS, ITERS, target_class, new_class, save_path, model_name, t
     input: target_class, new_class (to compare and generate adversary example)
     '''
     print("[ Initialize .. ]")
+    date = get_date()
     model, model_complete = get_model(model_name)
     loader1, loader2 = get_loader()
     adversary = L2PGDAttack(model_complete, loss_fn=nn.CrossEntropyLoss(), eps=EPS, nb_iter=ITERS, eps_iter=(EPS/10.), rand_init=True, clip_min=0.0, clip_max=1.0, targeted=True)
@@ -100,7 +108,7 @@ def analyze_layers(EPS, ITERS, target_class, new_class, save_path, model_name, t
 
     print("[ Visualize .. ]")
     fig, axes = plt.subplots(3, 3, figsize=(15,10))
-    fig.suptitle("model activations | input_id: " + str(target_id) + " | >0.3 Gradients | 10% Perturbation | with Softmax")
+    fig.suptitle("model activations | input_id: " + str(target_id) + " | $\epsilon= " +str(EPS)+ "$ | iters="+str(ITERS) + " | >0.3 Grads | 5% Perturbation | with Softmax | " + str(date))
     axes[0][0].imshow(np.moveaxis(input_target.cpu().squeeze().numpy(), 0, -1))
     axes[0][0].set_title(str(class_dict[target_class]) + " Input Image")
     axes[0][0].axis('off')

@@ -100,7 +100,7 @@ def get_model(model_name, complete_name, complete_name2, complete_name3, complet
 # ---------------------------------------------------
 if __name__ == "__main__":
     print("[ Initialize .. ]")
-    model_complete0, model_complete1, model_complete2, model_complete3, model_complete4 = get_model("basic_training", "basic_training_single_deer_to_horse_wasserstein", "basic_training_single_deer_to_horse_kldiv", "basic_training_single_deer_to_horse_bce", "basic_training_single_deer_to_horse_grads_test")
+    model_complete0, model_complete1, model_complete2, model_complete3, model_complete4 = get_model("basic_training_with_softmax", "basic_training_single_deer_to_horse_wasserstein", "basic_training_single_deer_to_horse_kldiv", "basic_training_single_deer_to_horse_bce", "basic_training_single_deer_to_horse_grads")
     loader1, loader2 = get_loader()
 
     print("[ Analyze Layers .. ]")

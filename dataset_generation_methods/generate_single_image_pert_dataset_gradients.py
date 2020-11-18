@@ -29,7 +29,7 @@ def get_model():
     net_complete.eval()
 
     net_normal = CNN()
-    checkpoint = torch.load('./checkpoint/basic_training')
+    checkpoint = torch.load('./checkpoint/basic_training_with_softmax')
     net_normal.load_state_dict(checkpoint['net'])
     net_normal.eval()
     return net_complete, net_normal
@@ -49,8 +49,8 @@ def generate_single_image_pertubed_dataset_gradients(output_name, target_class, 
     print("[ Choose Target .. ]")
     for idx, (input, target) in enumerate(test_dataset):
         input = input.to(device)
-        if target == target_class:
-        #if idx == 8387:
+        #if target == target_class:
+        if idx == 9035:
             new_class_input = input
             new_class_label = target
             best_image_id = idx

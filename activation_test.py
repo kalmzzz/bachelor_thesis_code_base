@@ -26,7 +26,10 @@ def get_loader():
     dataset = torchvision.datasets.CIFAR10(root='./data', train=False, download=False, transform=transform)
     loader = torch.utils.data.DataLoader(dataset, batch_size=1, shuffle=False, num_workers=1)
     loader2 = torch.utils.data.DataLoader(dataset, batch_size=1, shuffle=True, num_workers=1)
-    return loader, loader2
+
+    traindataset = torchvision.datasets.CIFAR10(root='./data', train=False, download=False, transform=transform)
+    train_loader = torch.utils.data.DataLoader(traindataset, batch_size=1, shuffle=False, num_workers=1)
+    return loader, loader2, train_loader
 
 def get_model(model_name):
     basic_net = CNN()
@@ -65,7 +68,7 @@ def analyze_layers(EPS, ITERS, target_class, new_class, model_name, target_id=No
     '''
     print("[ Initialize .. ]")
     model, model_complete = get_model(model_name)
-    loader1, loader2 = get_loader()
+    loader1, loader2, train_loader = get_loader()
     adversary = L2PGDAttack(model_complete, loss_fn=nn.CrossEntropyLoss(), eps=EPS, nb_iter=ITERS, eps_iter=(EPS/10.), rand_init=True, clip_min=0.0, clip_max=1.0, targeted=True)
 
     print("[ Analyze Layers .. ]")
@@ -133,19 +136,29 @@ def analyze_layers(EPS, ITERS, target_class, new_class, model_name, target_id=No
     axes[2][2].axis('off')
     plt.show()
 
+    print("[ Compute General Activations.. ]")
+    general_activation = None
+    for batch_idx, (input, target) in tqdm(enumerate(train_loader)):
+        if target == new_class:
+            if general_activation is None:
+                general_activation = model(input)
+            else:
+                general_activation += model(input)
+    model = model.to(device)
+    general_activation = general_activation / 5000.
+    general_activation = general_activation.to('cpu')
+    general_activation = np.reshape(general_activation.detach().numpy(), (16,32))
+
+    plt.imshow(general_activation, cmap="cool")
+    plt.show()
+
 if __name__ == "__main__":
     AIRPLANE, AUTO, BIRD, CAT, DEER, DOG, FROG, HORSE, SHIP, TRUCK = 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
 
-    EPS = 2.0
+    EPS = 4.0
     ITERS = 100
-
-    EPOCHS = 100
-    LR = 0.1
-    BATCH_SIZE = 128
-
-    PERT_COUNT = 0.5
 
     TARGET_CLASS = DEER
     NEW_CLASS = HORSE
 
-    analyze_layers(EPS, ITERS, TARGET_CLASS, NEW_CLASS, "basic_training_with_softmax", target_id=7769) #1686
+    analyze_layers(EPS, ITERS, TARGET_CLASS, NEW_CLASS, "basic_training_with_softmax", target_id=9035)

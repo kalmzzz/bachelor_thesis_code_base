@@ -30,6 +30,6 @@ if __name__ == "__main__":
     print(testset[0][0].shape)
 
     for idx, (input, target) in enumerate(testset):
-        if target == 4:
+        if idx == 8387:
             plt.imshow(np.moveaxis(input.squeeze().detach().cpu().numpy(), 0, -1))
             plt.show()

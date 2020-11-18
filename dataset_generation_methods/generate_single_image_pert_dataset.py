@@ -56,7 +56,7 @@ def get_model(model_path):
 
 # ---------------------------------------------------
 
-def generate_single_image_pertubed_dataset(model_path, output_name, target_class, new_class, EPS, ITERS, pertube_count, take_optimal=True):
+def generate_single_image_pertubed_dataset(model_path, output_name, target_class, new_class, EPS, ITERS, pertube_count, weighted=False, take_optimal=True):
     print("[ Initialize.. ]")
     model, model_cpu, model_complete = get_model(model_path)
     train_dataset = torchvision.datasets.CIFAR10(root='./data', train=True, download=False, transform=transforms.ToTensor())
@@ -82,6 +82,12 @@ def generate_single_image_pertubed_dataset(model_path, output_name, target_class
         general_activation = general_activation / 5000.
         general_activation = general_activation.to(device)
 
+        if weighted:
+            print("[ Calculate Loss Weights.. ]")
+            loss_weights = torch.where(general_activation > 0.4, 1, 0.5)
+        else:
+            loss_weights = torch.ones([512])
+
         print("[ Compute Target Activations.. ]")
         class_input_loss = np.inf
         for idx, (input, target) in enumerate(test_dataset):
@@ -102,7 +108,7 @@ def generate_single_image_pertubed_dataset(model_path, output_name, target_class
         for idx, (input, target) in enumerate(test_dataset):
             input = input.to(device)
             #if target == target_class:
-            if idx == 8387:
+            if idx == 9035:
                 new_class_input =  model(torch.unsqueeze(input, 0))
                 best_image_id = idx
                 break
@@ -118,7 +124,7 @@ def generate_single_image_pertubed_dataset(model_path, output_name, target_class
     dataset_loss_dict = {}
     current_pertube_count = 0
 
-    adversary = L2PGDAttack(model, loss_fn=KLDivLoss(), eps=EPS, nb_iter=ITERS, eps_iter=(EPS/10.), rand_init=True, clip_min=0.0, clip_max=1.0, targeted=True)
+    adversary = L2PGDAttack(model, loss_fn=nn.BCEWithLogitsLoss(weight=loss_weights), eps=EPS, nb_iter=ITERS, eps_iter=(EPS/10.), rand_init=True, clip_min=0.0, clip_max=1.0, targeted=True)
 
     for idx, (input, target) in tqdm(enumerate(train_dataset)):
         input = input.to(device)
@@ -126,7 +132,7 @@ def generate_single_image_pertubed_dataset(model_path, output_name, target_class
             advs = adversary.perturb(torch.unsqueeze(input, 0), new_class_input.to(device)).to('cpu')
             new_images[idx] = advs
             activation = model_cpu(advs)
-            dataset_loss_dict[idx] = kl_div_loss(activation.to('cpu'), new_class_input.to('cpu'))
+            dataset_loss_dict[idx] = F.binary_cross_entropy_with_logits(activation.to('cpu'), new_class_input.to('cpu'), weight=loss_weights)
 
     sorted_dataset_loss_dict = sorted(dataset_loss_dict.items(), key=lambda x: x[1])
 
