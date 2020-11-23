@@ -82,11 +82,10 @@ def generate_single_image_pertubed_dataset(model_path, output_name, target_class
         general_activation = general_activation / 5000.
         general_activation = general_activation.to(device)
 
+        print("[ Calculate Loss Weights.. ]")
+        loss_weights = torch.ones([512])
         if weighted:
-            print("[ Calculate Loss Weights.. ]")
-            loss_weights = torch.where(general_activation > 0.4, 1, 0.5)
-        else:
-            loss_weights = torch.ones([512])
+            loss_weights = torch.where(general_activation.to('cpu') > torch.Tensor([0.4]), torch.Tensor([1]), torch.Tensor([0.5]))
 
         print("[ Compute Target Activations.. ]")
         class_input_loss = np.inf
@@ -95,7 +94,7 @@ def generate_single_image_pertubed_dataset(model_path, output_name, target_class
             if target == target_class:
                 _, prediction = model_complete(torch.unsqueeze(input, 0)).max(1) #predicted damit nicht das Bild als bestes ausgewählt wird, was eh schon misklassifiziert wird
                 target_activation =  model(torch.unsqueeze(input, 0)) #generiere die Aktivierungen damit die nicht robusten features der Zielklasse an diese angepasst werden können
-                current_loss = F.binary_cross_entropy_with_logits(target_activation, general_activation)
+                current_loss = kl_div_loss(target_activation, general_activation)
 
                 if current_loss < class_input_loss and prediction != new_class:
                     best_image_id = idx
@@ -104,6 +103,24 @@ def generate_single_image_pertubed_dataset(model_path, output_name, target_class
         del model_complete
         print("[ Chose Target with ID: "+ str(best_image_id) +" ]")
     else:
+        print("[ Compute General Activations.. ]")
+        model = model.to('cpu')
+        general_activation = None
+        for batch_idx, (input, target) in tqdm(enumerate(train_dataset)):
+            if target == new_class:
+                if general_activation is None:
+                    general_activation = model(torch.unsqueeze(input, 0))
+                else:
+                    general_activation += model(torch.unsqueeze(input, 0))
+        model = model.to(device)
+        general_activation = general_activation / 5000.
+        general_activation = general_activation.to(device)
+
+        print("[ Calculate Loss Weights.. ]")
+        loss_weights = torch.ones([512])
+        if weighted:
+            loss_weights = torch.where(general_activation.to('cpu') > torch.Tensor([0.4]), torch.Tensor([1]), torch.Tensor([0.75]))
+
         print("[ Compute Target Activations.. ]")
         for idx, (input, target) in enumerate(test_dataset):
             input = input.to(device)
@@ -112,7 +129,7 @@ def generate_single_image_pertubed_dataset(model_path, output_name, target_class
                 new_class_input =  model(torch.unsqueeze(input, 0))
                 best_image_id = idx
                 break
-        print("[ Chose Target with ID: "+ str(best_image_id) +" ]")
+        print("[ Chose Target with ID: "+str(best_image_id)+" ]")
 
 
     print("[ Copy Dataset.. ]")
@@ -124,24 +141,28 @@ def generate_single_image_pertubed_dataset(model_path, output_name, target_class
     dataset_loss_dict = {}
     current_pertube_count = 0
 
-    adversary = L2PGDAttack(model, loss_fn=nn.BCEWithLogitsLoss(weight=loss_weights), eps=EPS, nb_iter=ITERS, eps_iter=(EPS/10.), rand_init=True, clip_min=0.0, clip_max=1.0, targeted=True)
+    adversary = L2PGDAttack(model, loss_fn=KLDivLoss(), eps=EPS, nb_iter=ITERS, eps_iter=(EPS/10.), rand_init=True, clip_min=0.0, clip_max=1.0, targeted=True)
 
     for idx, (input, target) in tqdm(enumerate(train_dataset)):
         input = input.to(device)
         if target == new_class:
             advs = adversary.perturb(torch.unsqueeze(input, 0), new_class_input.to(device)).to('cpu')
             new_images[idx] = advs
-            activation = model_cpu(advs)
-            dataset_loss_dict[idx] = F.binary_cross_entropy_with_logits(activation.to('cpu'), new_class_input.to('cpu'), weight=loss_weights)
+            if pertube_count != 1.0:
+                activation = model_cpu(advs)
+                dataset_loss_dict[idx] = kl_div_loss(activation.to('cpu'), new_class_input.to('cpu'))
 
-    sorted_dataset_loss_dict = sorted(dataset_loss_dict.items(), key=lambda x: x[1])
+    if pertube_count == 1.0:
+        new_images_final = new_images
+    else:
+        sorted_dataset_loss_dict = sorted(dataset_loss_dict.items(), key=lambda x: x[1])
 
-    for id, loss in sorted_dataset_loss_dict:
-        if current_pertube_count <= np.floor((pertube_count * len(sorted_dataset_loss_dict))):
-            new_images_final[id] = new_images[id]
-            current_pertube_count += 1
-        else:
-            break
+        for id, loss in sorted_dataset_loss_dict:
+            if current_pertube_count <= np.floor((pertube_count * len(sorted_dataset_loss_dict))):
+                new_images_final[id] = new_images[id]
+                current_pertube_count += 1
+            else:
+                break
 
     print("\n[ Saving Dataset: " + str(output_name) +" ]")
     torch.save(new_images_final, 'madry_data/release_datasets/perturbed_CIFAR/CIFAR_ims_'+str(output_name))

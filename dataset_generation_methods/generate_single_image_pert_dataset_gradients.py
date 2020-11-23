@@ -23,13 +23,13 @@ cudnn.benchmark = True
 
 def get_model():
     net_complete = CNN()
-    checkpoint = torch.load('./checkpoint/basic_training_non_robust')
+    checkpoint = torch.load('./checkpoint/basic_training_non_robust_no_softmax')
     net_complete.load_state_dict(checkpoint['net'])
     net_complete = net_complete.to(device)
     net_complete.eval()
 
     net_normal = CNN()
-    checkpoint = torch.load('./checkpoint/basic_training_with_softmax')
+    checkpoint = torch.load('./checkpoint/basic_training')
     net_normal.load_state_dict(checkpoint['net'])
     net_normal.eval()
     return net_complete, net_normal
@@ -50,7 +50,7 @@ def generate_single_image_pertubed_dataset_gradients(output_name, target_class, 
     for idx, (input, target) in enumerate(test_dataset):
         input = input.to(device)
         #if target == target_class:
-        if idx == 9035:
+        if idx == 1293:
             new_class_input = input
             new_class_label = target
             best_image_id = idx

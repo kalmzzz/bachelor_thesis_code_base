@@ -54,7 +54,7 @@ def get_model(model_path):
     net_complete.eval()
 
     net_non_robust = CNN()
-    checkpoint = torch.load('./checkpoint/basic_training_non_robust')
+    checkpoint = torch.load('./checkpoint/basic_training_non_robust_no_softmax')
     net_non_robust.load_state_dict(checkpoint['net'])
     net_non_robust = net_non_robust.to(device)
     net_non_robust.eval()
@@ -108,8 +108,8 @@ def generate_single_image_pertubed_dataset_combined(model_path, output_name, tar
         print("[ Compute Target Activations.. ]")
         for idx, (input, target) in enumerate(test_dataset):
             input = input.to(device)
-            if target == target_class:
-            #if idx == 9035:
+            #if target == target_class:
+            if idx == 9035:
                 grads_class_input = input
                 new_class_input =  model(input.unsqueeze(0))
                 best_image_id = idx
@@ -134,6 +134,23 @@ def generate_single_image_pertubed_dataset_combined(model_path, output_name, tar
 
 
     print("[ Building new Dataset.. ]")
+    dataset_loss_dict_grads = {}
+
+    for idx, (input, target) in enumerate(train_dataset):
+        if target == new_class:
+            output = model_complete(input.unsqueeze(0))
+            dataset_loss_dict_grads[idx] = F.cross_entropy(output.to('cpu'), torch.LongTensor([target_class]))
+
+
+    sorted_dataset_loss_dict_grads = sorted(dataset_loss_dict_grads.items(), key=lambda x: x[1])
+    current_pertube_count_grads = 0
+
+    for id, loss in sorted_dataset_loss_dict_grads:
+        if current_pertube_count_grads <= np.floor((pertube_count_grads * len(sorted_dataset_loss_dict_grads))):
+            new_images[id] = torch.where(features > 0., features, new_images[id])
+            current_pertube_count_grads += 1
+        else:
+            break
 
     dataset_loss_dict = {}
     current_pertube_count = 0
@@ -157,23 +174,6 @@ def generate_single_image_pertubed_dataset_combined(model_path, output_name, tar
         else:
             break
 
-    dataset_loss_dict_grads = {}
-
-    for idx, (input, target) in enumerate(train_dataset):
-        if target == new_class:
-            output = model_complete(input.unsqueeze(0))
-            dataset_loss_dict_grads[idx] = F.cross_entropy(output.to('cpu'), torch.LongTensor([target_class]))
-
-
-    sorted_dataset_loss_dict_grads = sorted(dataset_loss_dict_grads.items(), key=lambda x: x[1])
-    current_pertube_count_grads = 0
-
-    for id, loss in sorted_dataset_loss_dict_grads:
-        if current_pertube_count_grads <= np.floor((pertube_count_grads * len(sorted_dataset_loss_dict_grads))):
-            new_images_final[id] = torch.where(features > 0., features, new_images_final[id])
-            current_pertube_count_grads += 1
-        else:
-            break
 
     print("\n[ Saving Dataset: " + str(output_name) +" ]")
     torch.save(new_images_final, 'madry_data/release_datasets/perturbed_CIFAR/CIFAR_ims_'+str(output_name))

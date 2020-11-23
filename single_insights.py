@@ -18,14 +18,10 @@ from captum.attr import visualization as viz
 
 from models import *
 
-trainset = torchvision.datasets.CIFAR10(root='./data', train=True, download=False, transform=transforms.ToTensor()
-
-)
+trainset = torchvision.datasets.CIFAR10(root='./data', train=True, download=False, transform=transforms.ToTensor())
 trainloader = torch.utils.data.DataLoader(trainset, batch_size=4, shuffle=True, num_workers=2)
 
-testset = torchvision.datasets.CIFAR10(root='./data', train=False, download=False, transform=transforms.ToTensor()
-
-)
+testset = torchvision.datasets.CIFAR10(root='./data', train=False, download=False, transform=transforms.ToTensor())
 testloader = torch.utils.data.DataLoader(testset, batch_size=10000, shuffle=False, num_workers=1)
 
 def get_model():
@@ -35,7 +31,7 @@ def get_model():
     net_complete.eval()
 
     net_normal = CNN()
-    checkpoint = torch.load('./checkpoint/basic_training_with_softmax')
+    checkpoint = torch.load('./checkpoint/basic_training')
     net_normal.load_state_dict(checkpoint['net'])
     net_normal.eval()
     return net_complete, net_normal
@@ -46,7 +42,7 @@ if __name__ == "__main__":
     dataiter = iter(testloader)
     images, labels = dataiter.next()
 
-    ind = 9035
+    ind = 1293
 
     input = images[ind].unsqueeze(0)
     input.requires_grad = True
@@ -57,7 +53,7 @@ if __name__ == "__main__":
 
     input = input.squeeze().detach().numpy()
     input = np.moveaxis(input, 0, -1)
-    features = np.where(grads > 0.3, input, 0.)
+    features = np.where(grads > 0.75, input, 0.)
 
     print("normal prediction: ", net(torch.from_numpy(np.moveaxis(features, -1, 0)).unsqueeze(0)).max(1))
     print("non-robust prediction: ", net(torch.from_numpy(np.moveaxis(features, -1, 0)).unsqueeze(0)).max(1))

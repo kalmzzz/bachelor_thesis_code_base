@@ -14,7 +14,7 @@ from custom_modules import TensorDataset
 from advertorch.attacks import L2PGDAttack
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
-save_epochs = [50, 75, 100]
+save_epochs = [0, 24, 49, 74, 99]
 cudnn.benchmark = True
 
 def save_model(file_name, net):
@@ -97,5 +97,5 @@ def train(epochs, learning_rate, complex, output_name, data_suffix, batch_size, 
             kbar.update(batch_idx, values=[("loss", running_loss/(batch_idx+1)), ("acc", 100. * correct / total)])
         print()
         if epoch in save_epochs:
-            save_model(output_name, net)
+            save_model(output_name+"_"+str(epoch+1), net)
     save_model(output_name, net)

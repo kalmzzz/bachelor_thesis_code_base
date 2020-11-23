@@ -136,29 +136,29 @@ def analyze_layers(EPS, ITERS, target_class, new_class, model_name, target_id=No
     axes[2][2].axis('off')
     plt.show()
 
-    print("[ Compute General Activations.. ]")
-    general_activation = None
-    for batch_idx, (input, target) in tqdm(enumerate(train_loader)):
-        if target == new_class:
-            if general_activation is None:
-                general_activation = model(input)
-            else:
-                general_activation += model(input)
-    model = model.to(device)
-    general_activation = general_activation / 5000.
-    general_activation = general_activation.to('cpu')
-    general_activation = np.reshape(general_activation.detach().numpy(), (16,32))
-
-    plt.imshow(general_activation, cmap="cool")
-    plt.show()
+    # print("[ Compute General Activations.. ]")
+    # general_activation = None
+    # for batch_idx, (input, target) in tqdm(enumerate(train_loader)):
+    #     if target == new_class:
+    #         if general_activation is None:
+    #             general_activation = model(input)
+    #         else:
+    #             general_activation += model(input)
+    # model = model.to(device)
+    # general_activation = general_activation / 5000.
+    # general_activation = general_activation.to('cpu')
+    # general_activation = np.reshape(general_activation.detach().numpy(), (16,32))
+    #
+    # plt.imshow(general_activation, cmap="cool")
+    # plt.show()
 
 if __name__ == "__main__":
     AIRPLANE, AUTO, BIRD, CAT, DEER, DOG, FROG, HORSE, SHIP, TRUCK = 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
 
-    EPS = 4.0
+    EPS = 0.5
     ITERS = 100
 
     TARGET_CLASS = DEER
     NEW_CLASS = HORSE
 
-    analyze_layers(EPS, ITERS, TARGET_CLASS, NEW_CLASS, "basic_training_with_softmax", target_id=9035)
+    analyze_layers(EPS, ITERS, TARGET_CLASS, NEW_CLASS, "basic_training_single_deer_to_horse_kldiv_no_softmax", target_id=9035)
