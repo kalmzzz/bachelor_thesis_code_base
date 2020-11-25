@@ -53,7 +53,6 @@ def single_model_evaluation(model_name, save_path):
         total += targets.size(0)
         adv = adversary.perturb(inputs, targets)
 
-# ------------------------- Basic Training on normal CIFAR10 -----------------
         outputs = net(inputs)
         _, predicted = outputs.max(1)
         net_benign_correct += predicted.eq(targets).sum().item()

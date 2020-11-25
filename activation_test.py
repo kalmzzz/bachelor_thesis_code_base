@@ -161,4 +161,4 @@ if __name__ == "__main__":
     TARGET_CLASS = DEER
     NEW_CLASS = HORSE
 
-    analyze_layers(EPS, ITERS, TARGET_CLASS, NEW_CLASS, "basic_training_single_deer_to_horse_kldiv_no_softmax", target_id=9035)
+    analyze_layers(EPS, ITERS, TARGET_CLASS, NEW_CLASS, "basic_training", target_id=9035)

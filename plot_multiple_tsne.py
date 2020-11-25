@@ -5,11 +5,13 @@ import torch.nn.functional as F
 import torch.backends.cudnn as cudnn
 import torchvision
 import torchvision.transforms as transforms
-from sklearn.manifold import TSNE
+#from sklearn.manifold import TSNE
+from MulticoreTSNE import MulticoreTSNE as TSNE
 import os
 import numpy as np
 from tqdm import tqdm
 from models import *
+from custom_modules import TensorDataset
 import matplotlib.pyplot as plt
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -18,9 +20,14 @@ AIRPLANE, AUTO, BIRD, CAT, DEER, DOG, FROG, HORSE, SHIP, TRUCK = 0, 1, 2, 3, 4, 
 
 def get_model(path):
     basic_net = CNN()
-    checkpoint = torch.load('./checkpoint/'+str(path))
+    checkpoint = torch.load('./checkpoint/basic_training_'+str(path))
+    #basic_net.fc_layer = nn.Sequential(nn.Identity())
     basic_net.fc_layer = nn.Sequential(
-        nn.Identity()
+        nn.Dropout(p=0.1),
+        nn.Linear(4096, 1024),
+        nn.ReLU(inplace=True),
+        nn.Linear(1024, 512),
+        nn.ReLU(inplace=True)
     )
     basic_net.load_state_dict(checkpoint['net'], strict=False)
     basic_net = basic_net.to(device)
@@ -37,49 +44,71 @@ def scale_to_01_range(x):
 if __name__ == "__main__":
     target_class = DEER
     new_class = HORSE
-    data_suffix = "basic_training_single_deer_to_horse_kldiv_no_softmax"
-    target_image_id = 1293
+    normal_dataset = False
+    data_suffix = "single_deer_to_horse_kldiv_no_softmax"
+    target_image_id = 9035
     poison_ids = None
 
 
     print("[ Initialize.. ]")
-    model0 = get_model(data_suffix+"_0")
+    model0 = get_model(data_suffix+"_1")
     model1 = get_model(data_suffix+"_25")
-    model2 = get_model(data_suffix+"_75")
-    model3 = get_model(data_suffix+"_100")
+    model2 = get_model(data_suffix+"_50")
+    model3 = get_model(data_suffix+"_75")
+    model4 = get_model(data_suffix+"_100")
 
     data_path = "madry_data/release_datasets/perturbed_CIFAR/"
-    train_data = ch.load(os.path.join(data_path, f"CIFAR_ims_"+str(data_suffix)))
-    train_labels = ch.load(os.path.join(data_path, f"CIFAR_lab_"+str(data_suffix)))
-    train_dataset = TensorDataset(train_data, train_labels, transform=transforms.ToTensor())
-    test_dataset = torchvision.datasets.CIFAR10(root='./data', train=False, download=False, transform=transforms.ToTensor())
-    train_dataset = ch.cat(train_dataset, test_dataset[target_image_id])
-    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=128, shuffle=False, num_workers=4)
 
-    features0, features1, features2, features3 = None, None, None, None
-    for idx, (input, target) in tqdm(enumerate(train_loader), desc="Running Model Inference"):
+    if normal_dataset:
+        poison_ids = torch.load(os.path.join(data_path, f"CIFAR_ids_"+str(data_suffix)))
+        test_dataset = torchvision.datasets.CIFAR10(root='./data', train=False, download=False, transform=transforms.ToTensor())
+        train_dataset = torchvision.datasets.CIFAR10(root='./data', train=True, download=False, transform=transforms.ToTensor())
+        train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=len(train_dataset), shuffle=False, num_workers=1)
+        imgs, labels = list(train_loader)[0]
+        train_data = torch.cat((torch.tensor(imgs), torch.tensor(test_dataset[target_image_id][0]).unsqueeze(0)))
+        train_labels = torch.cat((torch.tensor(labels), torch.tensor(test_dataset[target_image_id][1]).unsqueeze(0)))
+    else:
+        poison_ids = torch.load(os.path.join(data_path, f"CIFAR_ids_"+str(data_suffix)))
+        train_data = torch.load(os.path.join(data_path, f"CIFAR_ims_"+str(data_suffix)))
+        train_labels = torch.load(os.path.join(data_path, f"CIFAR_lab_"+str(data_suffix)))
+        test_dataset = torchvision.datasets.CIFAR10(root='./data', train=False, download=False, transform=transforms.ToTensor())
+        train_data = torch.cat((train_data, torch.tensor(test_dataset[target_image_id][0]).unsqueeze(0)))
+        train_labels = torch.cat((train_labels, torch.tensor(test_dataset[target_image_id][1]).unsqueeze(0)))
+
+
+    dataset = TensorDataset(train_data, train_labels, transform=transforms.ToTensor())
+    dataset_loader = torch.utils.data.DataLoader(dataset, batch_size=128, shuffle=False, num_workers=4)
+    whole_loader = torch.utils.data.DataLoader(dataset, batch_size=len(dataset), shuffle=False, num_workers=1)
+
+
+    features0, features1, features2, features3, features4 = None, None, None, None
+    for idx, (input, target) in tqdm(enumerate(dataset_loader), desc="Running Model Inference"):
         input = input.to(device)
-        if target == target_class
-            with torch.no_grad():
-                output0 = model0.forward(input)
-                output1 = model1.forward(input)
-                output2 = model2.forward(input)
-                output3 = model3.forward(input)
+        with torch.no_grad():
+            output0 = model0.forward(input)
+            output1 = model1.forward(input)
+            output2 = model2.forward(input)
+            output3 = model3.forward(input)
+            output4 = model3.forward(input)
 
-            current_features0 = output0.cpu().numpy()
-            current_features1 = output1.cpu().numpy()
-            current_features2 = output2.cpu().numpy()
-            current_features3 = output3.cpu().numpy()
-            if features is not None:
-                features0 = np.concatenate((features0, current_features0))
-                features1 = np.concatenate((features1, current_features1))
-                features2 = np.concatenate((features2, current_features2))
-                features3 = np.concatenate((features3, current_features3))
-            else:
-                features0 = current_features0
-                features1 = current_features1
-                features2 = current_features2
-                features3 = current_features3
+        current_features0 = output0.cpu().numpy()
+        current_features1 = output1.cpu().numpy()
+        current_features2 = output2.cpu().numpy()
+        current_features3 = output3.cpu().numpy()
+        current_features4 = output4.cpu().numpy()
+
+        if features0 is not None:
+            features0 = np.concatenate((features0, current_features0))
+            features1 = np.concatenate((features1, current_features1))
+            features2 = np.concatenate((features2, current_features2))
+            features3 = np.concatenate((features3, current_features3))
+            features4 = np.concatenate((features4, current_features4))
+        else:
+            features0 = current_features0
+            features1 = current_features1
+            features2 = current_features2
+            features3 = current_features3
+            features4 = current_features4
 
 
     print("[ Running TSNE ]")
@@ -87,38 +116,99 @@ if __name__ == "__main__":
     tsne1 = TSNE(n_components=2, verbose=1, n_jobs=-1).fit_transform(features1)
     tsne2 = TSNE(n_components=2, verbose=1, n_jobs=-1).fit_transform(features2)
     tsne3 = TSNE(n_components=2, verbose=1, n_jobs=-1).fit_transform(features3)
+    tsne4 = TSNE(n_components=2, verbose=1, n_jobs=-1).fit_transform(features4)
 
-    tx0, ty0, tx1, ty1, tx2, ty2 ,tx3, ty3 = tsne0[:, 0], tsne0[:, 1], tsne1[:, 0], tsne1[:, 1], tsne2[:, 0], tsne2[:, 1], tsne3[:, 0], tsne3[:, 1]
+    # tsne0 = torch.load('results/t_SNE/tsne0_'+str(data_suffix))
+    # tsne1 = torch.load('results/t_SNE/tsne1_'+str(data_suffix))
+    # tsne2 = torch.load('results/t_SNE/tsne2_'+str(data_suffix))
+    # tsne3 = torch.load('results/t_SNE/tsne3_'+str(data_suffix))
+    # tsne4 = torch.load('results/t_SNE/tsne4_'+str(data_suffix))
+
+    try:
+        torch.save(tsne0, 'results/t_SNE/tsne0_'+str(data_suffix))
+        torch.save(tsne1, 'results/t_SNE/tsne1_'+str(data_suffix))
+        torch.save(tsne2, 'results/t_SNE/tsne2_'+str(data_suffix))
+        torch.save(tsne3, 'results/t_SNE/tsne3_'+str(data_suffix))
+        torch.save(tsne4, 'results/t_SNE/tsne4_'+str(data_suffix))
+    except Exception as e:
+        print("Couldn't save tsne data: " + str(e))
+
+    tx0, ty0, tx1, ty1, tx2, ty2, tx3, ty3, tx4, ty4 = tsne0[:, 0], tsne0[:, 1], tsne1[:, 0], tsne1[:, 1], tsne2[:, 0], tsne2[:, 1], tsne3[:, 0], tsne3[:, 1], tsne4[:, 0], tsne4[:, 1]
 
     tx0, ty0 = scale_to_01_range(tx0), scale_to_01_range(ty0)
     tx1, ty1 = scale_to_01_range(tx1), scale_to_01_range(ty1)
     tx2, ty2 = scale_to_01_range(tx2), scale_to_01_range(ty2)
     tx3, ty3 = scale_to_01_range(tx3), scale_to_01_range(ty3)
+    tx4, ty4 = scale_to_01_range(tx4), scale_to_01_range(ty4)
 
     fig = plt.figure()
-    fig.suptitle("t_SNE | basic_training_with_softmax | CIFAR10 | Testset")
+    fig.suptitle("t_SNE | "+str(data_suffix)+" $\epsilon=0.6$ | iters=100 | 50% Perturbation | KLDiv | without Softmax | without last layer| CIFAR10 ")
 
-    ax0 = fig.add_subplot(411)
-    ax2 = fig.add_subplot(412)
-    ax3 = fig.add_subplot(413)
-    ax4 = fig.add_subplot(414)
+    ax0 = fig.add_subplot(511)
+    ax1 = fig.add_subplot(512)
+    ax2 = fig.add_subplot(513)
+    ax3 = fig.add_subplot(514)
+    ax4 = fig.add_subplot(514)
 
     print("[ Visualize.. ]")
-    classes = [target_class, new_class]
-    colors = ['red', 'green']
+    classes = [0,1,2,3,4,5,6,7,8,9]
+    important_classes = [target_class, new_class]
+    colors = ['lightsteelblue','lightsteelblue','lightsteelblue','lightsteelblue','lightsteelblue', 'mediumseagreen', 'mediumseagreen', 'mediumseagreen', 'mediumseagreen', 'mediumseagreen']
+    colors2 = ['red', 'green', 'blue', 'lime', 'cornflowerblue', 'magenta', 'gray', 'teal', 'olive', 'peru']
+
+    _, labels = list(whole_loader)[0]
+    #labels = np.delete(labels, -1) #nimmt unser target raus
+    #labels = np.delete(labels, poison_ids) #nimmt die poisons raus
+
     for single_class in classes:
-        labels = train_dataset.targets
-        indices = [i for i, l in enumerate(labels) if l == single_class]
+        indices = [i for i, l in enumerate(labels) if l == single_class] #erstellt indizes der jeweiligen klasse zum plotten
 
-        current_tx0, current_ty0 = np.take(tx0, indices), np.take(ty0, indices)
-        current_tx1, current_ty1 = np.take(tx1, indices), np.take(ty1, indices)
-        current_tx2, current_ty2 = np.take(tx2, indices), np.take(ty2, indices)
-        current_tx3, current_ty3 = np.take(tx3, indices), np.take(ty3, indices)
+        if single_class in important_classes:
+            current_tx0, current_ty0 = np.take(tx0, indices), np.take(ty0, indices)
+            current_tx1, current_ty1 = np.take(tx1, indices), np.take(ty1, indices)
+            current_tx2, current_ty2 = np.take(tx2, indices), np.take(ty2, indices)
+            current_tx3, current_ty3 = np.take(tx3, indices), np.take(ty3, indices)
+            current_tx4, current_ty4 = np.take(tx4, indices), np.take(ty4, indices)
 
-        ax0.scatter(current_tx0, current_ty0, c=colors[single_class], label=class_dict[single_class])
-        ax1.scatter(current_tx1, current_ty1, c=colors[single_class], label=class_dict[single_class])
-        ax2.scatter(current_tx2, current_ty2, c=colors[single_class], label=class_dict[single_class])
-        ax3.scatter(current_tx3, current_ty3, c=colors[single_class], label=class_dict[single_class])
+            ax0.scatter(current_tx0, current_ty0, c=colors[single_class], label=class_dict[single_class], edgecolors='none', alpha=0.5)
+            ax1.scatter(current_tx1, current_ty1, c=colors[single_class], label=class_dict[single_class], edgecolors='none', alpha=0.5)
+            ax2.scatter(current_tx2, current_ty2, c=colors[single_class], label=class_dict[single_class], edgecolors='none', alpha=0.5)
+            ax3.scatter(current_tx3, current_ty3, c=colors[single_class], label=class_dict[single_class], edgecolors='none', alpha=0.5)
+            ax4.scatter(current_tx4, current_ty4, c=colors[single_class], label=class_dict[single_class], edgecolors='none', alpha=0.5)
 
-    ax.legend(loc='best')
+    poisons_tx0, poisons_ty0 = np.take(tx0, poison_ids), np.take(ty0, poison_ids)
+    poisons_tx1, poisons_ty1 = np.take(tx1, poison_ids), np.take(ty1, poison_ids)
+    poisons_tx2, poisons_ty2 = np.take(tx2, poison_ids), np.take(ty2, poison_ids)
+    poisons_tx3, poisons_ty3 = np.take(tx3, poison_ids), np.take(ty3, poison_ids)
+    poisons_tx4, poisons_ty4 = np.take(tx4, poison_ids), np.take(ty4, poison_ids)
+
+    ax0.scatter(poisons_tx0, poisons_ty0, c='red', label='poison', alpha=0.4, s=20)
+    ax1.scatter(poisons_tx1, poisons_ty1, c='red', label='poison', alpha=0.4, s=20)
+    ax2.scatter(poisons_tx2, poisons_ty2, c='red', label='poison', alpha=0.4, s=20)
+    ax3.scatter(poisons_tx3, poisons_ty3, c='red', label='poison', alpha=0.4, s=20)
+    ax4.scatter(poisons_tx4, poisons_ty4, c='red', label='poison', alpha=0.4, s=20)
+
+    target_tx0, target_ty0 = np.take(tx0, -1), np.take(ty0, -1)
+    target_tx1, target_ty1 = np.take(tx1, -1), np.take(ty1, -1)
+    target_tx2, target_ty2 = np.take(tx2, -1), np.take(ty2, -1)
+    target_tx3, target_ty3 = np.take(tx3, -1), np.take(ty3, -1)
+    target_tx4, target_ty4 = np.take(tx4, -1), np.take(ty4, -1)
+
+    ax0.scatter(target_tx0, target_ty0, c='blue', label='target', marker="^", s=300)
+    ax1.scatter(target_tx1, target_ty1, c='blue', label='target', marker="^", s=300)
+    ax2.scatter(target_tx2, target_ty2, c='blue', label='target', marker="^", s=300)
+    ax3.scatter(target_tx3, target_ty3, c='blue', label='target', marker="^", s=300)
+    ax4.scatter(target_tx4, target_ty4, c='blue', label='target', marker="^", s=300)
+
+    ax0.set_title("Epoch 0")
+    ax1.set_title("Epoch 25")
+    ax2.set_title("Epoch 50")
+    ax3.set_title("Epoch 75")
+    ax4.set_title("Epoch 100")
+
+    ax0.legend(loc='best')
+    ax1.legend(loc='best')
+    ax2.legend(loc='best')
+    ax3.legend(loc='best')
+    ax4.legend(loc='best')
     plt.show()

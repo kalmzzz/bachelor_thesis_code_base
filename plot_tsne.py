@@ -22,7 +22,7 @@ transform_train = transforms.Compose([
 
 def get_model():
     basic_net = CNN()
-    checkpoint = torch.load('./checkpoint/basic_training_with_softmax')
+    checkpoint = torch.load('./checkpoint/basic_training_single_deer_to_horse_kldiv_no_softmax')
     basic_net.fc_layer = nn.Sequential(
         nn.Identity()
     )
