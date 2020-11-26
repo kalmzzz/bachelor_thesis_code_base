@@ -6,9 +6,9 @@ from dataset_generation_methods import *
 
 # ---------------- Parameters -----------------------
 AIRPLANE, AUTO, BIRD, CAT, DEER, DOG, FROG, HORSE, SHIP, TRUCK = 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
-L1, BCE, WASSERSTEIN, KLDIV = 0, 1, 2, 3
+BCE, WASSERSTEIN, KLDIV = 0, 1, 2
 
-EPS = 0.15
+EPS = 0.05
 ITERS = 100
 
 EPOCHS = 100
@@ -22,9 +22,11 @@ GRADIENT_THRESHOLD = 0.6
 
 # Target Class wird als new class erkannt während new class normal erkannt wird
 TARGET_CLASS = DEER
-NEW_CLASS = HORSE
+NEW_CLASS = AIRPLANE
 
-DATASET_NAME = "single_deer_to_horse_bce_no_softmax_0.15"
+LOSS_FN = KLDIV
+
+DATASET_NAME = "single_deer_to_airplane_kldiv_no_softmax_0.05"
 
 # ---------------------------------------------------
 
@@ -34,23 +36,22 @@ if __name__ == "__main__":
 # -------------------- Dataset Generation -----------------------
 
     #generate_pertubed_dataset_main(eps=EPS, iter=ITERS, target_class=TARGET_CLASS, new_class=NEW_CLASS, dataset_name=DATASET_NAME, inf=False, pertube_count=PERT_COUNT)
-    best_image_id = 9035
-    best_image_id = generate_single_image_pertubed_dataset(model_path="basic_training", output_name=DATASET_NAME, target_class=TARGET_CLASS, new_class=NEW_CLASS, EPS=EPS, ITERS=ITERS, pertube_count=PERT_COUNT, weighted=False, take_optimal=False)
+    best_image_id = 22
+    #best_image_id = generate_single_image_pertubed_dataset(model_path="basic_training", output_name=DATASET_NAME, target_class=TARGET_CLASS, new_class=NEW_CLASS, EPS=EPS, ITERS=ITERS, pertube_count=PERT_COUNT, loss_fn=LOSS_FN, weighted=False, take_optimal=False)
     #best_image_id = generate_single_image_pertubed_dataset_gradients(output_name=DATASET_NAME, target_class=TARGET_CLASS, new_class=NEW_CLASS, pertube_count=PERT_COUNT_GRADS, gradient_threshold=GRADIENT_THRESHOLD)
-    #best_image_id = generate_single_image_pertubed_dataset_combined(model_path="basic_training", output_name=DATASET_NAME, target_class=TARGET_CLASS, new_class=NEW_CLASS, EPS=EPS, ITERS=ITERS, pertube_count=PERT_COUNT, pertube_count_grads=PERT_COUNT_GRADS, gradient_threshold=GRADIENT_THRESHOLD, take_optimal=False)
 
 # ------------------- Training --------------------------------
 
-    train(epochs=EPOCHS,
-          learning_rate=LR,
-          complex=False,
-          output_name="basic_training_"+str(DATASET_NAME),
-          #output_name="basic_training_non_robust_no_softmax",
-          #data_suffix="L2_"+str(DATASET_NAME)+"_"+str(PERT_COUNT)+"pert_"+str(ITERS)+"iters_"+str(EPS)+"eps",
-          data_suffix=DATASET_NAME,
-          batch_size=BATCH_SIZE,
-          data_augmentation=True
-          )
+    # train(epochs=EPOCHS,
+    #       learning_rate=LR,
+    #       complex=False,
+    #       output_name="basic_training_"+str(DATASET_NAME),
+    #       #output_name="basic_training_non_robust_no_softmax",
+    #       #data_suffix="L2_"+str(DATASET_NAME)+"_"+str(PERT_COUNT)+"pert_"+str(ITERS)+"iters_"+str(EPS)+"eps",
+    #       data_suffix=DATASET_NAME,
+    #       batch_size=BATCH_SIZE,
+    #       data_augmentation=True
+    #       )
 
 # ------------------- Evaluation -----------------------------
     result_path = 'results/'+str(DATASET_NAME)+'_results'

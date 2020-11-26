@@ -15,6 +15,7 @@ from tqdm import tqdm
 from models import *
 from custom_modules.loss import *
 
+BCE, WASSERSTEIN, KLDIV = 0, 1, 2
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 cudnn.benchmark = True
@@ -56,14 +57,24 @@ def get_model(model_path):
 
 # ---------------------------------------------------
 
-def generate_single_image_pertubed_dataset(model_path, output_name, target_class, new_class, EPS, ITERS, pertube_count, weighted=False, take_optimal=True):
+def generate_single_image_pertubed_dataset(model_path, output_name, target_class, new_class, EPS, ITERS, pertube_count, loss_fn, weighted=False, take_optimal=True):
     print("[ Initialize.. ]")
     model, model_cpu, model_complete = get_model(model_path)
     train_dataset = torchvision.datasets.CIFAR10(root='./data', train=True, download=False, transform=transforms.ToTensor())
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=len(train_dataset), shuffle=False, num_workers=1)
     test_dataset = torchvision.datasets.CIFAR10(root='./data', train=False, download=False, transform=transforms.ToTensor())
-    wasser_loss = Wasserstein_Loss()
-    kl_div_loss = KLDivLoss()
+
+    loss_function = None
+    if loss_fn == KLDIV:
+        loss_function = KLDivLoss()
+        loss_class = KLDivLoss()
+    if loss_fn == WASSERSTEIN:
+        loss_function = Wasserstein_Loss()
+        loss_class = Wasserstein_Loss()
+    if loss_fn == BCE:
+        loss_function = F.binary_cross_entropy_with_logits
+        loss_class = nn.BCEWithLogitsLoss()
+
 
     new_class_input = None
     best_image_id = None
@@ -89,7 +100,7 @@ def generate_single_image_pertubed_dataset(model_path, output_name, target_class
             if target == target_class:
                 _, prediction = model_complete(torch.unsqueeze(input, 0)).max(1) #predicted damit nicht das Bild als bestes ausgewählt wird, was eh schon misklassifiziert wird
                 target_activation =  model(torch.unsqueeze(input, 0)) #generiere die Aktivierungen damit die nicht robusten features der Zielklasse an diese angepasst werden können
-                current_loss = kl_div_loss(target_activation, general_activation)
+                current_loss = loss_function(target_activation, general_activation)
 
                 if current_loss < class_input_loss and prediction != new_class:
                     best_image_id = idx
@@ -116,7 +127,7 @@ def generate_single_image_pertubed_dataset(model_path, output_name, target_class
         for idx, (input, target) in enumerate(test_dataset):
             input = input.to(device)
             #if target == target_class:
-            if idx == 9035:
+            if idx == 22:
                 new_class_input =  model(torch.unsqueeze(input, 0))
                 best_image_id = idx
                 break
@@ -132,7 +143,7 @@ def generate_single_image_pertubed_dataset(model_path, output_name, target_class
     dataset_loss_dict = {}
     current_pertube_count = 0
 
-    adversary = L2PGDAttack(model, loss_fn=nn.BCEWithLogitsLoss(), eps=EPS, nb_iter=ITERS, eps_iter=(EPS/10.), rand_init=True, clip_min=0.0, clip_max=1.0, targeted=True)
+    adversary = L2PGDAttack(model, loss_fn=loss_class, eps=EPS, nb_iter=ITERS, eps_iter=(EPS/10.), rand_init=True, clip_min=0.0, clip_max=1.0, targeted=True)
 
     for idx, (input, target) in tqdm(enumerate(train_dataset)):
         input = input.to(device)
@@ -141,7 +152,7 @@ def generate_single_image_pertubed_dataset(model_path, output_name, target_class
             new_images[idx] = advs
             if pertube_count != 1.0:
                 activation = model_cpu(advs)
-                dataset_loss_dict[idx] = F.binary_cross_entropy_with_logits(activation.to('cpu'), new_class_input.to('cpu'))
+                dataset_loss_dict[idx] = loss_function(activation.to('cpu'), new_class_input.to('cpu'))
 
     if pertube_count == 1.0:
         new_images_final = new_images

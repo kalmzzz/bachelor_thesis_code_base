@@ -45,7 +45,7 @@ if __name__ == "__main__":
     target_class = DEER
     new_class = HORSE
     normal_dataset = False
-    data_suffix = "single_deer_to_horse_kldiv_no_softmax"
+    data_suffix = "single_deer_to_horse_kldiv_no_softmax_test1.0"
     target_image_id = 9035
     poison_ids = None
 
@@ -81,7 +81,7 @@ if __name__ == "__main__":
     whole_loader = torch.utils.data.DataLoader(dataset, batch_size=len(dataset), shuffle=False, num_workers=1)
 
 
-    features0, features1, features2, features3, features4 = None, None, None, None
+    features0, features1, features2, features3, features4 = None, None, None, None, None
     for idx, (input, target) in tqdm(enumerate(dataset_loader), desc="Running Model Inference"):
         input = input.to(device)
         with torch.no_grad():
@@ -89,7 +89,7 @@ if __name__ == "__main__":
             output1 = model1.forward(input)
             output2 = model2.forward(input)
             output3 = model3.forward(input)
-            output4 = model3.forward(input)
+            output4 = model4.forward(input)
 
         current_features0 = output0.cpu().numpy()
         current_features1 = output1.cpu().numpy()
@@ -142,13 +142,13 @@ if __name__ == "__main__":
     tx4, ty4 = scale_to_01_range(tx4), scale_to_01_range(ty4)
 
     fig = plt.figure()
-    fig.suptitle("t_SNE | "+str(data_suffix)+" $\epsilon=0.6$ | iters=100 | 50% Perturbation | KLDiv | without Softmax | without last layer| CIFAR10 ")
+    fig.suptitle("t_SNE | "+str(data_suffix)+" | $\epsilon=1.0$ | iters=100 | 50% Perturbation | KLDiv | without Softmax | without last layer| CIFAR10 ")
 
     ax0 = fig.add_subplot(511)
     ax1 = fig.add_subplot(512)
     ax2 = fig.add_subplot(513)
     ax3 = fig.add_subplot(514)
-    ax4 = fig.add_subplot(514)
+    ax4 = fig.add_subplot(515)
 
     print("[ Visualize.. ]")
     classes = [0,1,2,3,4,5,6,7,8,9]
@@ -157,8 +157,6 @@ if __name__ == "__main__":
     colors2 = ['red', 'green', 'blue', 'lime', 'cornflowerblue', 'magenta', 'gray', 'teal', 'olive', 'peru']
 
     _, labels = list(whole_loader)[0]
-    #labels = np.delete(labels, -1) #nimmt unser target raus
-    #labels = np.delete(labels, poison_ids) #nimmt die poisons raus
 
     for single_class in classes:
         indices = [i for i, l in enumerate(labels) if l == single_class] #erstellt indizes der jeweiligen klasse zum plotten

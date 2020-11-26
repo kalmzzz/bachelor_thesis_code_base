@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 from custom_modules import TensorDataset
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
-
+AIRPLANE, AUTO, BIRD, CAT, DEER, DOG, FROG, HORSE, SHIP, TRUCK = 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
 cudnn.benchmark = True
 
 if __name__ == "__main__":
@@ -27,9 +27,8 @@ if __name__ == "__main__":
     testset = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=transforms.ToTensor())
     testloader = torch.utils.data.DataLoader(testset, batch_size=1, shuffle=False, num_workers=1)
 
-    print(testset[0][0].shape)
-
     for idx, (input, target) in enumerate(testset):
-        if idx == 8387:
+        if target == DEER:
+            print(idx)
             plt.imshow(np.moveaxis(input.squeeze().detach().cpu().numpy(), 0, -1))
             plt.show()

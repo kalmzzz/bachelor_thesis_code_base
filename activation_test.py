@@ -155,10 +155,10 @@ def analyze_layers(EPS, ITERS, target_class, new_class, model_name, target_id=No
 if __name__ == "__main__":
     AIRPLANE, AUTO, BIRD, CAT, DEER, DOG, FROG, HORSE, SHIP, TRUCK = 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
 
-    EPS = 0.5
+    EPS = 0.25
     ITERS = 100
 
     TARGET_CLASS = DEER
-    NEW_CLASS = HORSE
+    NEW_CLASS = AIRPLANE
 
-    analyze_layers(EPS, ITERS, TARGET_CLASS, NEW_CLASS, "basic_training", target_id=9035)
+    analyze_layers(EPS, ITERS, TARGET_CLASS, NEW_CLASS, "basic_training", target_id=22)
