@@ -3,7 +3,6 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import Dataset
 import torch.nn.functional as F
-import torch.backends.cudnn as cudnn
 import torchvision
 import torchvision.transforms as transforms
 from advertorch.attacks import L2PGDAttack
@@ -18,7 +17,6 @@ from custom_modules.loss import *
 BCE, WASSERSTEIN, KLDIV = 0, 1, 2
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
-cudnn.benchmark = True
 
 def get_model(model_path):
     net = CNN()
@@ -57,7 +55,7 @@ def get_model(model_path):
 
 # ---------------------------------------------------
 
-def generate_single_image_pertubed_dataset(model_path, output_name, target_class, new_class, EPS, ITERS, pertube_count, loss_fn, weighted=False, take_optimal=True):
+def generate_single_image_pertubed_dataset(model_path, output_name, target_class, new_class, EPS, ITERS, pertube_count, loss_fn, take_optimal=True):
     print("[ Initialize.. ]")
     model, model_cpu, model_complete = get_model(model_path)
     train_dataset = torchvision.datasets.CIFAR10(root='./data', train=True, download=False, transform=transforms.ToTensor())
@@ -74,7 +72,6 @@ def generate_single_image_pertubed_dataset(model_path, output_name, target_class
     if loss_fn == BCE:
         loss_function = F.binary_cross_entropy_with_logits
         loss_class = nn.BCEWithLogitsLoss()
-
 
     new_class_input = None
     best_image_id = None
@@ -102,32 +99,17 @@ def generate_single_image_pertubed_dataset(model_path, output_name, target_class
                 target_activation =  model(torch.unsqueeze(input, 0)) #generiere die Aktivierungen damit die nicht robusten features der Zielklasse an diese angepasst werden können
                 current_loss = loss_function(target_activation, general_activation)
 
-                if current_loss < class_input_loss and prediction != new_class:
+                if current_loss < class_input_loss and prediction == target_class: #guckt das das Bild nicht schon vorher misklassifiziert wird
                     best_image_id = idx
                     new_class_input =  model(torch.unsqueeze(input, 0))
                     class_input_loss = current_loss
-        del model_complete
         print("[ Chose Target with ID: "+ str(best_image_id) +" ]")
     else:
-        print("[ Compute General Activations.. ]")
-        model = model.to('cpu')
-        general_activation = None
-        for batch_idx, (input, target) in tqdm(enumerate(train_dataset)):
-            if target == new_class:
-                if general_activation is None:
-                    general_activation = model(torch.unsqueeze(input, 0))
-                else:
-                    general_activation += model(torch.unsqueeze(input, 0))
-        model = model.to(device)
-        general_activation = general_activation / 5000.
-        general_activation = general_activation.to(device)
-
-
         print("[ Compute Target Activations.. ]")
         for idx, (input, target) in enumerate(test_dataset):
             input = input.to(device)
             #if target == target_class:
-            if idx == 22:
+            if idx == 9035:
                 new_class_input =  model(torch.unsqueeze(input, 0))
                 best_image_id = idx
                 break
@@ -171,4 +153,17 @@ def generate_single_image_pertubed_dataset(model_path, output_name, target_class
     torch.save(new_images_final, 'madry_data/release_datasets/perturbed_CIFAR/CIFAR_ims_'+str(output_name))
     torch.save(new_labels, 'madry_data/release_datasets/perturbed_CIFAR/CIFAR_lab_'+str(output_name))
     torch.save(id_list, 'madry_data/release_datasets/perturbed_CIFAR/CIFAR_ids_'+str(output_name))
+
+    #bisschen aufräumen
+    del new_images_final
+    del new_labels
+    del id_list
+    del model
+    del model_cpu
+    del model_complete
+    del adversary
+    del test_dataset
+    del train_dataset
+    del train_loader
+
     return best_image_id

@@ -1,6 +1,5 @@
 import torch
 import torch.nn as nn
-import torch.backends.cudnn as cudnn
 import torchvision
 import torchvision.transforms as transforms
 from models import *
@@ -12,24 +11,19 @@ import pkbar
 import matplotlib as mpl
 
 class_dict = {0:"Airplane", 1:"Auto", 2:"Bird", 3:"Cat", 4:"Deer", 5:"Dog", 6:"Frog", 7:"Horse", 8:"Ship", 9:"Truck"}
-device = 'cuda' if torch.cuda.is_available() else 'cpu'
+#device = 'cuda' if torch.cuda.is_available() else 'cpu'
+device = 'cpu'
 
-transform_test = transforms.Compose([
-    transforms.ToTensor(),
-])
-
-test_dataset = torchvision.datasets.CIFAR10(root='./data', train=False, download=False, transform=transform_test)
-test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=40, shuffle=False, num_workers=6)
+test_dataset = torchvision.datasets.CIFAR10(root='./data', train=False, download=False, transform=transforms.ToTensor())
+test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=128, shuffle=False, num_workers=2)
 AIRPLANE, AUTO, BIRD, CAT, DEER, DOG, FROG, HORSE, SHIP, TRUCK = 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
 
 
 def test(target_class, model_name, new_class=None):
     net = CNN()
     net = net.to(device)
-    #net = nn.DataParallel(net)
     checkpoint = torch.load('./checkpoint/' + model_name)
     net.load_state_dict(checkpoint['net'])
-    cudnn.benchmark = True
     net.eval()
 
     total = 0
@@ -38,13 +32,13 @@ def test(target_class, model_name, new_class=None):
     #adversary  = L2PGDAttack(net, loss_fn=nn.CrossEntropyLoss(), eps=1.0, nb_iter=12, eps_iter=0.2, rand_init=True, clip_min=0.0, clip_max=1.0, targeted=True)
 
     for batch_idx, (inputs, targets) in enumerate(tqdm(test_loader)):
-        inputs, targets = inputs.to(device), targets.to(device)
+        # inputs, targets = inputs.to(device), targets.to(device)
 
         target_ids = torch.where(targets == target_class)[0]
         for id in target_ids:
 
             if new_class is not None:
-                inputs[id] = adversary.perturb(torch.unsqueeze(inputs[id], 0), torch.LongTensor([new_class]).to(device))
+                inputs[id] = adversary.perturb(torch.unsqueeze(inputs[id], 0), torch.LongTensor([new_class]))#.to(device))
 
             output = net(torch.unsqueeze(inputs[id], 0))
             _, predicted = output.max(1)

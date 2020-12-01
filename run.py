@@ -3,30 +3,39 @@ import os
 from train_methods import *
 from evaluation_methods import *
 from dataset_generation_methods import *
+import torch
+import torch.backends.cudnn as cudnn
+import numpy as np
+
+# torch.manual_seed(42)
+# np.random.seed(42)
+# torch.cuda.manual_seed(42)
+cudnn.benchmark = True
+# cudnn.deterministic=True
 
 # ---------------- Parameters -----------------------
 AIRPLANE, AUTO, BIRD, CAT, DEER, DOG, FROG, HORSE, SHIP, TRUCK = 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
 BCE, WASSERSTEIN, KLDIV = 0, 1, 2
 
-EPS = 0.05
-ITERS = 100
+EPS = 0.6 #epsilon
+ITERS = 100 #wiederholungen von pgd
 
 EPOCHS = 100
 LR = 0.1
 BATCH_SIZE = 128
 
-PERT_COUNT = 0.5
+PERT_COUNT = 0.5 #gibt an wieviel Prozent der Zielklasse "perturbed" sein sollen
 
-PERT_COUNT_GRADS = 0.3
-GRADIENT_THRESHOLD = 0.6
+PERT_COUNT_GRADS = 0.3 #gibt an wieviel Prozent der Zielklasse "perturbed" sein sollen | für gradienten methode
+GRADIENT_THRESHOLD = 0.6 #threshold ab welchem die gradienten benutzt werden
 
 # Target Class wird als new class erkannt während new class normal erkannt wird
 TARGET_CLASS = DEER
-NEW_CLASS = AIRPLANE
+NEW_CLASS = HORSE
 
-LOSS_FN = KLDIV
+LOSS_FN = BCE
 
-DATASET_NAME = "single_deer_to_airplane_kldiv_no_softmax_0.05"
+DATASET_NAME = "single_deer_to_horse_bce_no_softmax"
 
 # ---------------------------------------------------
 
@@ -36,22 +45,22 @@ if __name__ == "__main__":
 # -------------------- Dataset Generation -----------------------
 
     #generate_pertubed_dataset_main(eps=EPS, iter=ITERS, target_class=TARGET_CLASS, new_class=NEW_CLASS, dataset_name=DATASET_NAME, inf=False, pertube_count=PERT_COUNT)
-    best_image_id = 22
-    #best_image_id = generate_single_image_pertubed_dataset(model_path="basic_training", output_name=DATASET_NAME, target_class=TARGET_CLASS, new_class=NEW_CLASS, EPS=EPS, ITERS=ITERS, pertube_count=PERT_COUNT, loss_fn=LOSS_FN, weighted=False, take_optimal=False)
+    best_image_id = 9035
+    best_image_id = generate_single_image_pertubed_dataset(model_path="basic_training", output_name=DATASET_NAME, target_class=TARGET_CLASS, new_class=NEW_CLASS, EPS=EPS, ITERS=ITERS, pertube_count=PERT_COUNT, loss_fn=LOSS_FN, take_optimal=False)
     #best_image_id = generate_single_image_pertubed_dataset_gradients(output_name=DATASET_NAME, target_class=TARGET_CLASS, new_class=NEW_CLASS, pertube_count=PERT_COUNT_GRADS, gradient_threshold=GRADIENT_THRESHOLD)
 
 # ------------------- Training --------------------------------
 
-    # train(epochs=EPOCHS,
-    #       learning_rate=LR,
-    #       complex=False,
-    #       output_name="basic_training_"+str(DATASET_NAME),
-    #       #output_name="basic_training_non_robust_no_softmax",
-    #       #data_suffix="L2_"+str(DATASET_NAME)+"_"+str(PERT_COUNT)+"pert_"+str(ITERS)+"iters_"+str(EPS)+"eps",
-    #       data_suffix=DATASET_NAME,
-    #       batch_size=BATCH_SIZE,
-    #       data_augmentation=True
-    #       )
+    train(epochs=EPOCHS,
+          learning_rate=LR,
+          complex=False,
+          output_name="basic_training_"+str(DATASET_NAME),
+          #output_name="basic_training_non_robust_no_softmax",
+          #data_suffix="L2_"+str(DATASET_NAME)+"_"+str(PERT_COUNT)+"pert_"+str(ITERS)+"iters_"+str(EPS)+"eps",
+          data_suffix=DATASET_NAME,
+          batch_size=BATCH_SIZE,
+          data_augmentation=True
+          )
 
 # ------------------- Evaluation -----------------------------
     result_path = 'results/'+str(DATASET_NAME)+'_results'
@@ -59,7 +68,7 @@ if __name__ == "__main__":
     if not os.path.isdir(result_path):
         os.mkdir(result_path)
 
-    analyze_layers(EPS, ITERS, target_class=TARGET_CLASS, new_class=NEW_CLASS, save_path=result_path, model_name="basic_training_"+str(DATASET_NAME), target_id=best_image_id, pert_count=PERT_COUNT, grad_thresh=GRADIENT_THRESHOLD)
+    analyze_layers(EPS, ITERS, target_class=TARGET_CLASS, new_class=NEW_CLASS, save_path=result_path, model_name="basic_training_"+str(DATASET_NAME), target_id=best_image_id, pert_count=PERT_COUNT, grad_thresh=GRADIENT_THRESHOLD, loss_fn=LOSS_FN)
 
     evaluate_single_class(model_name="basic_training_"+str(DATASET_NAME), save_path=result_path, target_class=TARGET_CLASS, new_class=NEW_CLASS)
 

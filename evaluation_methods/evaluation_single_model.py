@@ -1,6 +1,5 @@
 import torch
 import torch.nn as nn
-import torch.backends.cudnn as cudnn
 import torchvision
 import torchvision.transforms as transforms
 from models import *
@@ -9,18 +8,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 from advertorch.attacks import LinfPGDAttack, L2PGDAttack
 import pkbar
-cudnn.benchmark = True
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-transform_test = transforms.Compose([
-    transforms.ToTensor(),
-])
-
-
 def get_loader():
-    test_dataset = torchvision.datasets.CIFAR10(root='./data', train=False, download=False, transform=transform_test)
-    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=40, shuffle=True, num_workers=6)
+    test_dataset = torchvision.datasets.CIFAR10(root='./data', train=False, download=False, transform=transforms.ToTensor())
+    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=128, shuffle=True, num_workers=2)
     return test_loader
 
 def get_model(model_name):

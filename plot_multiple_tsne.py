@@ -45,7 +45,7 @@ if __name__ == "__main__":
     target_class = DEER
     new_class = HORSE
     normal_dataset = False
-    data_suffix = "single_deer_to_horse_kldiv_no_softmax_test1.0"
+    data_suffix = "single_deer_to_horse_kldiv_no_softmax"
     target_image_id = 9035
     poison_ids = None
 
@@ -142,7 +142,7 @@ if __name__ == "__main__":
     tx4, ty4 = scale_to_01_range(tx4), scale_to_01_range(ty4)
 
     fig = plt.figure()
-    fig.suptitle("t_SNE | "+str(data_suffix)+" | $\epsilon=1.0$ | iters=100 | 50% Perturbation | KLDiv | without Softmax | without last layer| CIFAR10 ")
+    fig.suptitle("t_SNE | "+str(data_suffix)+" | $\epsilon=0.5$ | iters=100 | 25% Perturbation | KLDiv | without Softmax | without last layer | CIFAR10 ")
 
     ax0 = fig.add_subplot(511)
     ax1 = fig.add_subplot(512)

@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
-import torch.backends.cudnn as cudnn
 import torch as ch
 from torch.utils.data import Dataset
 import torchvision
@@ -15,7 +14,6 @@ from advertorch.attacks import L2PGDAttack
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 save_epochs = [0, 24, 49, 74, 99]
-cudnn.benchmark = True
 
 def save_model(file_name, net):
     print("[ Saving Model ]")

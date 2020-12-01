@@ -2,7 +2,6 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
-import torch.backends.cudnn as cudnn
 import torchvision
 import torchvision.transforms as transforms
 from torch.utils.data import Dataset
@@ -17,6 +16,7 @@ import pkbar
 from models import *
 
 class_dict = {0:"Airplane", 1:"Auto", 2:"Bird", 3:"Cat", 4:"Deer", 5:"Dog", 6:"Frog", 7:"Horse", 8:"Ship", 9:"Truck"}
+BCE, WASSERSTEIN, KLDIV = 0, 1, 2
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 def get_date():
@@ -65,12 +65,21 @@ def get_model(model_name):
 
 # ---------------------------------------------------
 
-def analyze_layers(EPS, ITERS, target_class, new_class, save_path, model_name, pert_count, grad_thresh, target_id=None):
+def analyze_layers(EPS, ITERS, target_class, new_class, save_path, model_name, pert_count, grad_thresh, loss_fn, target_id=None):
     '''
     analyzes the whole layer activation of the second last and last layer.
     input: target_class, new_class (to compare and generate adversary example)
     '''
     print("[ Initialize .. ]")
+
+    loss_function = ""
+    if loss_fn == KLDIV:
+        loss_function = "KLDiv"
+    if loss_fn == WASSERSTEIN:
+        loss_function = "Wasserstein"
+    if loss_fn == BCE:
+        loss_function = "BCE_WithLogits"
+
     date = get_date()
     model, model_complete = get_model(model_name)
     loader1, loader2 = get_loader()
@@ -105,10 +114,15 @@ def analyze_layers(EPS, ITERS, target_class, new_class, save_path, model_name, p
     activations_advs = np.reshape(activations_advs.detach().numpy(), (16,32))
     activations_advs_last = model_complete(advs_img).detach().numpy()
 
+    softmaxed_last = F.softmax(torch.tensor(activations_last), dim=1).numpy()
+    softmaxed_last2 = F.softmax(torch.tensor(activations_last2), dim=1).numpy()
+    softmaxed_advs_last = F.softmax(torch.tensor(activations_advs_last), dim=1).numpy()
+
+
     #    >"+str(grad_thresh)+" Grads |
     print("[ Visualize .. ]")
-    fig, axes = plt.subplots(3, 3, figsize=(15,10))
-    fig.suptitle("model activations | input_id: "+str(target_id)+" | $\epsilon= "+str(EPS)+"$ | iters="+str(ITERS)+" | "+str(pert_count)+" Perturbation | KLDiv | without Softmax | without last layer | " + str(date))
+    fig, axes = plt.subplots(3, 4, figsize=(15,10))
+    fig.suptitle("model activations | input_id: "+str(target_id)+" | $\epsilon= "+str(EPS)+"$ | iters="+str(ITERS)+" | "+str(pert_count)+" Perturbation | "+str(loss_function)+" | without Softmax | without last layer | " + str(date))
     axes[0][0].imshow(np.moveaxis(input_target.cpu().squeeze().numpy(), 0, -1))
     axes[0][0].set_title(str(class_dict[target_class]) + " Input Image")
     axes[0][0].axis('off')
@@ -118,6 +132,9 @@ def analyze_layers(EPS, ITERS, target_class, new_class, save_path, model_name, p
     axes[0][2].imshow(activations_last, cmap="cool")
     axes[0][2].set_title("Activations Last Layer")
     axes[0][2].axis('off')
+    axes[0][3].imshow(softmaxed_last, cmap="cool")
+    axes[0][3].set_title("Strongest Class")
+    axes[0][3].axis('off')
 
 
     axes[1][0].imshow(np.moveaxis(advs_img.cpu().squeeze().numpy(), 0, -1))
@@ -129,6 +146,9 @@ def analyze_layers(EPS, ITERS, target_class, new_class, save_path, model_name, p
     axes[1][2].imshow(activations_advs_last, cmap="cool")
     axes[1][2].set_title("Activations Last Layer")
     axes[1][2].axis('off')
+    axes[1][3].imshow(softmaxed_advs_last, cmap="cool")
+    axes[1][3].set_title("")
+    axes[1][3].axis('off')
 
     axes[2][0].imshow(np.moveaxis(input_new_class.cpu().squeeze().numpy(), 0, -1))
     axes[2][0].set_title(str(class_dict[new_class]) + " Input Image")
@@ -139,5 +159,14 @@ def analyze_layers(EPS, ITERS, target_class, new_class, save_path, model_name, p
     axes[2][2].imshow(activations_last2, cmap="cool")
     axes[2][2].set_title("Activations Last Layer")
     axes[2][2].axis('off')
+    axes[2][3].imshow(softmaxed_last2, cmap="cool")
+    axes[2][3].set_title("")
+    axes[2][3].axis('off')
     #plt.show()
     plt.savefig('./'+ str(save_path) +'/layer_eval_'+ str(model_name) +'.png', dpi=400)
+
+    del model
+    del model_complete
+    del loader1
+    del loader2
+    del adversary

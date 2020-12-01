@@ -3,7 +3,6 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import Dataset
 import torch.nn.functional as F
-import torch.backends.cudnn as cudnn
 import torchvision
 import torchvision.transforms as transforms
 from advertorch.attacks import L2PGDAttack
@@ -19,7 +18,6 @@ import matplotlib.pyplot as plt
 from captum.attr import Saliency
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
-cudnn.benchmark = True
 
 def get_model():
     net_complete = CNN()
