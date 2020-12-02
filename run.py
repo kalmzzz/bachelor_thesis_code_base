@@ -6,6 +6,8 @@ from dataset_generation_methods import *
 import torch
 import torch.backends.cudnn as cudnn
 import numpy as np
+AIRPLANE, AUTO, BIRD, CAT, DEER, DOG, FROG, HORSE, SHIP, TRUCK = 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
+BCE, WASSERSTEIN, KLDIV = 0, 1, 2
 
 # torch.manual_seed(42)
 # np.random.seed(42)
@@ -13,29 +15,31 @@ import numpy as np
 cudnn.benchmark = True
 # cudnn.deterministic=True
 
-# ---------------- Parameters -----------------------
-AIRPLANE, AUTO, BIRD, CAT, DEER, DOG, FROG, HORSE, SHIP, TRUCK = 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
-BCE, WASSERSTEIN, KLDIV = 0, 1, 2
 
-EPS = 0.6 #epsilon
+
+
+# ---------------- Parameters -----------------------
+
+EPS = 0.1 #epsilon
 ITERS = 100 #wiederholungen von pgd
 
 EPOCHS = 100
 LR = 0.1
 BATCH_SIZE = 128
 
-PERT_COUNT = 0.5 #gibt an wieviel Prozent der Zielklasse "perturbed" sein sollen
+PERT_COUNT = 0.25 #gibt an wieviel Prozent der Zielklasse "perturbed" sein sollen
 
 PERT_COUNT_GRADS = 0.3 #gibt an wieviel Prozent der Zielklasse "perturbed" sein sollen | für gradienten methode
 GRADIENT_THRESHOLD = 0.6 #threshold ab welchem die gradienten benutzt werden
 
 # Target Class wird als new class erkannt während new class normal erkannt wird
 TARGET_CLASS = DEER
-NEW_CLASS = HORSE
+NEW_CLASS = AIRPLANE
 
-LOSS_FN = BCE
+LOSS_FN = KLDIV
 
-DATASET_NAME = "single_deer_to_horse_bce_no_softmax"
+DATASET_NAME = "single_deer_to_airplane_kldiv_no_softmax"
+CUSTOM_BEST_IMAGE_ID = 22 #wenn nicht das beste bild genommen werden soll, kann man hier eine wunsch id einsetzen
 
 # ---------------------------------------------------
 
@@ -45,8 +49,8 @@ if __name__ == "__main__":
 # -------------------- Dataset Generation -----------------------
 
     #generate_pertubed_dataset_main(eps=EPS, iter=ITERS, target_class=TARGET_CLASS, new_class=NEW_CLASS, dataset_name=DATASET_NAME, inf=False, pertube_count=PERT_COUNT)
-    best_image_id = 9035
-    best_image_id = generate_single_image_pertubed_dataset(model_path="basic_training", output_name=DATASET_NAME, target_class=TARGET_CLASS, new_class=NEW_CLASS, EPS=EPS, ITERS=ITERS, pertube_count=PERT_COUNT, loss_fn=LOSS_FN, take_optimal=False)
+    best_image_id = CUSTOM_BEST_IMAGE_ID
+    best_image_id = generate_single_image_pertubed_dataset(model_name="basic_training", output_name=DATASET_NAME, target_class=TARGET_CLASS, new_class=NEW_CLASS, EPS=EPS, ITERS=ITERS, pertube_count=PERT_COUNT, loss_fn=LOSS_FN, custom_id=CUSTOM_BEST_IMAGE_ID)
     #best_image_id = generate_single_image_pertubed_dataset_gradients(output_name=DATASET_NAME, target_class=TARGET_CLASS, new_class=NEW_CLASS, pertube_count=PERT_COUNT_GRADS, gradient_threshold=GRADIENT_THRESHOLD)
 
 # ------------------- Training --------------------------------

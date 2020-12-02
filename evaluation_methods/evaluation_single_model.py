@@ -19,7 +19,7 @@ def get_loader():
 def get_model(model_name):
     net = CNN()
     net = net.to(device)
-    checkpoint = torch.load('./checkpoint/' + model_name)
+    checkpoint = torch.load('./model_saves/'+str(model_name)+'/'+str(model_name))
     net.load_state_dict(checkpoint['net'])
     return net
 

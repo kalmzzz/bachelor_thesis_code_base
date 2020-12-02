@@ -172,4 +172,4 @@ if __name__ == "__main__":
     TARGET_CLASS = HORSE
     NEW_CLASS = AUTO
 
-    analyze_layers(EPS, ITERS, TARGET_CLASS, NEW_CLASS, "basic_training", target_id=4750)
+    analyze_layers(EPS, ITERS, TARGET_CLASS, NEW_CLASS, "basic_training", target_id=22)

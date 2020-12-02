@@ -22,7 +22,7 @@ AIRPLANE, AUTO, BIRD, CAT, DEER, DOG, FROG, HORSE, SHIP, TRUCK = 0, 1, 2, 3, 4, 
 def test(target_class, model_name, new_class=None):
     net = CNN()
     net = net.to(device)
-    checkpoint = torch.load('./checkpoint/' + model_name)
+    checkpoint = torch.load('./model_saves/'+str(model_name)+'/'+str(model_name))
     net.load_state_dict(checkpoint['net'])
     net.eval()
 

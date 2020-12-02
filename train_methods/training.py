@@ -15,14 +15,14 @@ from advertorch.attacks import L2PGDAttack
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 save_epochs = [0, 24, 49, 74, 99]
 
-def save_model(file_name, net):
+def save_model(path, file_name, net):
     print("[ Saving Model ]")
     state = {
         'net': net.state_dict()
     }
-    if not os.path.isdir('checkpoint'):
-        os.mkdir('checkpoint')
-    torch.save(state, './checkpoint/' + file_name)
+    if not os.path.isdir('model_saves'):
+        os.mkdir('model_saves')
+    torch.save(state, './model_saves/'+str(path)+'/' + str(file_name))
 
 
 def adjust_learning_rate(optimizer, epoch, epochs, learning_rate):
@@ -45,7 +45,7 @@ def get_loaders(data_suffix, batch_size, data_augmentation):
         train_dataset = torchvision.datasets.CIFAR10(root='./data', train=True, download=False, transform=data_transform)
         train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=4)
     else:
-        data_path = "madry_data/release_datasets/perturbed_CIFAR/"
+        data_path = "datasets/"+str(data_suffix)+"/"
         train_data = ch.load(os.path.join(data_path, f"CIFAR_ims_"+str(data_suffix))).to(device)
         train_labels = ch.load(os.path.join(data_path, f"CIFAR_lab_"+str(data_suffix))).to(device)
         train_dataset = TensorDataset(train_data, train_labels, transform=data_transform)
@@ -95,5 +95,5 @@ def train(epochs, learning_rate, complex, output_name, data_suffix, batch_size, 
             kbar.update(batch_idx, values=[("loss", running_loss/(batch_idx+1)), ("acc", 100. * correct / total)])
         print()
         if epoch in save_epochs:
-            save_model(output_name+"_"+str(epoch+1), net)
-    save_model(output_name, net)
+            save_model(output_name, output_name+"_"+str(epoch+1), net)
+    save_model(output_name, output_name, net)

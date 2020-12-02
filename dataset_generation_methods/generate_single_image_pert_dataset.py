@@ -18,46 +18,48 @@ BCE, WASSERSTEIN, KLDIV = 0, 1, 2
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-def get_model(model_path):
+def get_model(model_name, device_string, layers=None):
     net = CNN()
-    checkpoint = torch.load('./checkpoint/'+str(model_path))
-    net.fc_layer = nn.Sequential(
-        nn.Dropout(p=0.1),
-        nn.Linear(4096, 1024),
-        nn.ReLU(inplace=True),
-        nn.Linear(1024, 512),
-        nn.ReLU(inplace=True)
-    )
+    checkpoint = torch.load('./model_saves/'+str(model_name)+'/'+str(model_name))
+    if layers == 2:
+        net.fc_layer = nn.Sequential(
+            nn.Dropout(p=0.1),
+            nn.Linear(4096, 1024),
+            nn.ReLU(inplace=True)
+        )
+    if layers == 1:
+        net.fc_layer = nn.Sequential(
+            nn.Dropout(p=0.1),
+            nn.Linear(4096, 1024),
+            nn.ReLU(inplace=True),
+            nn.Linear(1024, 512),
+            nn.ReLU(inplace=True)
+        )
+    if layers == 0:
+        net.fc_layer = nn.Sequential(
+            nn.Dropout(p=0.1),
+            nn.Linear(4096, 1024),
+            nn.ReLU(inplace=True),
+            nn.Linear(1024, 512),
+            nn.ReLU(inplace=True),
+            nn.Linear(512, 10),
+            nn.ReLU(inplace=True)
+        )
+
     net.load_state_dict(checkpoint['net'], strict=False)
-    net = net.to(device)
+    net = net.to(device_string)
     net.eval()
-
-    net2 = CNN()
-    checkpoint = torch.load('./checkpoint/'+str(model_path))
-    net2.fc_layer = nn.Sequential(
-        nn.Dropout(p=0.1),
-        nn.Linear(4096, 1024),
-        nn.ReLU(inplace=True),
-        nn.Linear(1024, 512),
-        nn.ReLU(inplace=True)
-    )
-    net2.load_state_dict(checkpoint['net'], strict=False)
-    net2 = net2.to('cpu')
-    net2.eval()
-
-    net_complete = CNN()
-    checkpoint = torch.load('./checkpoint/'+str(model_path))
-    net_complete.load_state_dict(checkpoint['net'])
-    net_complete = net_complete.to(device)
-    net_complete.eval()
-    return net, net2, net_complete
+    return net
 
 
 # ---------------------------------------------------
 
-def generate_single_image_pertubed_dataset(model_path, output_name, target_class, new_class, EPS, ITERS, pertube_count, loss_fn, take_optimal=True):
+def generate_single_image_pertubed_dataset(model_name, output_name, target_class, new_class, EPS, ITERS, pertube_count, loss_fn, custom_id):
     print("[ Initialize.. ]")
-    model, model_cpu, model_complete = get_model(model_path)
+    model = get_model(model_name, device_string=device, layers=2)
+    model_cpu = get_model(model_name, device_string='cpu', layers=2)
+    model_complete = get_model(model_name, device_string=device, layers=None)
+
     train_dataset = torchvision.datasets.CIFAR10(root='./data', train=True, download=False, transform=transforms.ToTensor())
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=len(train_dataset), shuffle=False, num_workers=1)
     test_dataset = torchvision.datasets.CIFAR10(root='./data', train=False, download=False, transform=transforms.ToTensor())
@@ -76,7 +78,7 @@ def generate_single_image_pertubed_dataset(model_path, output_name, target_class
     new_class_input = None
     best_image_id = None
 
-    if take_optimal:
+    if custom_id is None:
         print("[ Compute General Activations.. ]")
         model = model.to('cpu')
         general_activation = None
@@ -108,8 +110,7 @@ def generate_single_image_pertubed_dataset(model_path, output_name, target_class
         print("[ Compute Target Activations.. ]")
         for idx, (input, target) in enumerate(test_dataset):
             input = input.to(device)
-            #if target == target_class:
-            if idx == 9035:
+            if target == target_class:
                 new_class_input =  model(torch.unsqueeze(input, 0))
                 best_image_id = idx
                 break
@@ -150,9 +151,12 @@ def generate_single_image_pertubed_dataset(model_path, output_name, target_class
                 break
 
     print("\n[ Saving Dataset: " + str(output_name) +" ]")
-    torch.save(new_images_final, 'madry_data/release_datasets/perturbed_CIFAR/CIFAR_ims_'+str(output_name))
-    torch.save(new_labels, 'madry_data/release_datasets/perturbed_CIFAR/CIFAR_lab_'+str(output_name))
-    torch.save(id_list, 'madry_data/release_datasets/perturbed_CIFAR/CIFAR_ids_'+str(output_name))
+    if not os.path.isdir('datasets'):
+        os.mkdir('datasets')
+
+    torch.save(new_images_final, 'datasets/'+str(output_name)+'/CIFAR_ims_'+str(output_name))
+    torch.save(new_labels, 'datasets/'+str(output_name)+'/CIFAR_lab_'+str(output_name))
+    torch.save(id_list, 'datasets/'+str(output_name)+'/CIFAR_ids_'+str(output_name))
 
     #bisschen aufräumen
     del new_images_final

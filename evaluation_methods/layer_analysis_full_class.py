@@ -48,7 +48,7 @@ def get_loader():
 def get_model():
     basic_net = getCNN()
     #basic_net = basic_net.to(device)
-    checkpoint = torch.load('./checkpoint/basic_training')
+    checkpoint = torch.load('./model_saves/basic_training/basic_training')
     basic_net.fc_layer = nn.Sequential(
         nn.Dropout(p=0.1),
         nn.Linear(4096, 1024),
