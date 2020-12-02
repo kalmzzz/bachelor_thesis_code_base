@@ -153,7 +153,8 @@ def generate_single_image_pertubed_dataset(model_name, output_name, target_class
     print("\n[ Saving Dataset: " + str(output_name) +" ]")
     if not os.path.isdir('datasets'):
         os.mkdir('datasets')
-
+    if not os.path.isdir('datasets/'+str(output_name)):
+        os.mkdir('datasets/'+str(output_name))
     torch.save(new_images_final, 'datasets/'+str(output_name)+'/CIFAR_ims_'+str(output_name))
     torch.save(new_labels, 'datasets/'+str(output_name)+'/CIFAR_lab_'+str(output_name))
     torch.save(id_list, 'datasets/'+str(output_name)+'/CIFAR_ids_'+str(output_name))

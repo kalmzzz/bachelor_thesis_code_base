@@ -22,6 +22,8 @@ def save_model(path, file_name, net):
     }
     if not os.path.isdir('model_saves'):
         os.mkdir('model_saves')
+    if not os.path.isdir('model_saves/'+str(path)):
+        os.mkdir('model_saves/'+str(path))
     torch.save(state, './model_saves/'+str(path)+'/' + str(file_name))
 
 

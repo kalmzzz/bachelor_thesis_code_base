@@ -37,7 +37,7 @@ def get_loader():
 
 def get_model(model_name):
     basic_net = CNN()
-    checkpoint = torch.load('./models/'+str(model_name)+'/'+str(model_name))
+    checkpoint = torch.load('./model_saves/'+str(model_name)+'/'+str(model_name))
     basic_net.fc_layer = nn.Sequential(
         nn.Dropout(p=0.1),
         nn.Linear(4096, 1024),
