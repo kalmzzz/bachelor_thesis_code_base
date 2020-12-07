@@ -20,26 +20,26 @@ cudnn.benchmark = True
 
 # ---------------- Parameters -----------------------
 
-EPS = 0.1 #epsilon
+EPS = 0.5 #epsilon
 ITERS = 100 #wiederholungen von pgd
 
 EPOCHS = 100
 LR = 0.1
 BATCH_SIZE = 128
 
-PERT_COUNT = 0.25 #gibt an wieviel Prozent der Zielklasse "perturbed" sein sollen
+PERT_COUNT = 0.5 #gibt an wieviel Prozent der Zielklasse "perturbed" sein sollen
 
 PERT_COUNT_GRADS = 0.3 #gibt an wieviel Prozent der Zielklasse "perturbed" sein sollen | für gradienten methode
 GRADIENT_THRESHOLD = 0.6 #threshold ab welchem die gradienten benutzt werden
 
 # Target Class wird als new class erkannt während new class normal erkannt wird
 TARGET_CLASS = DEER
-NEW_CLASS = AIRPLANE
+NEW_CLASS = AUTO
 
 LOSS_FN = KLDIV
 
-DATASET_NAME = "single_deer_to_airplane_kldiv_no_softmax"
-CUSTOM_BEST_IMAGE_ID = 22 #wenn nicht das beste bild genommen werden soll, kann man hier eine wunsch id einsetzen
+DATASET_NAME = "single_deer_to_auto_kldiv_no_softmax"
+CUSTOM_BEST_IMAGE_ID = None #wenn nicht das beste bild genommen werden soll, kann man hier eine wunsch id einsetzen
 
 # ---------------------------------------------------
 

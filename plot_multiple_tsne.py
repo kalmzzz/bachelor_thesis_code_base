@@ -18,9 +18,9 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 class_dict = {0:"Airplane", 1:"Auto", 2:"Bird", 3:"Cat", 4:"Deer", 5:"Dog", 6:"Frog", 7:"Horse", 8:"Ship", 9:"Truck"}
 AIRPLANE, AUTO, BIRD, CAT, DEER, DOG, FROG, HORSE, SHIP, TRUCK = 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
 
-def get_model(path):
+def get_model(path0, path1):
     basic_net = CNN()
-    checkpoint = torch.load('./checkpoint/basic_training_'+str(path))
+    checkpoint = torch.load('./model_saves/basic_training_'+str(path0)+'/basic_training_'+str(path1))
     #basic_net.fc_layer = nn.Sequential(nn.Identity())
     basic_net.fc_layer = nn.Sequential(
         nn.Dropout(p=0.1),
@@ -42,22 +42,22 @@ def scale_to_01_range(x):
 
 
 if __name__ == "__main__":
-    target_class = DEER
-    new_class = HORSE
+    target_class = TRUCK
+    new_class = DOG
     normal_dataset = False
-    data_suffix = "single_deer_to_horse_kldiv_no_softmax"
-    target_image_id = 9035
+    data_suffix = "single_truck_to_dog_kldiv_no_softmax"
+    target_image_id = 7491
     poison_ids = None
 
 
     print("[ Initialize.. ]")
-    model0 = get_model(data_suffix+"_1")
-    model1 = get_model(data_suffix+"_25")
-    model2 = get_model(data_suffix+"_50")
-    model3 = get_model(data_suffix+"_75")
-    model4 = get_model(data_suffix+"_100")
+    model0 = get_model(data_suffix, data_suffix+"_1")
+    model1 = get_model(data_suffix, data_suffix+"_25")
+    model2 = get_model(data_suffix, data_suffix+"_50")
+    model3 = get_model(data_suffix, data_suffix+"_75")
+    model4 = get_model(data_suffix, data_suffix+"_100")
 
-    data_path = "madry_data/release_datasets/perturbed_CIFAR/"
+    data_path = "datasets/"+str(data_suffix)+"/"
 
     if normal_dataset:
         poison_ids = torch.load(os.path.join(data_path, f"CIFAR_ids_"+str(data_suffix)))
@@ -142,7 +142,7 @@ if __name__ == "__main__":
     tx4, ty4 = scale_to_01_range(tx4), scale_to_01_range(ty4)
 
     fig = plt.figure()
-    fig.suptitle("t_SNE | "+str(data_suffix)+" | $\epsilon=0.5$ | iters=100 | 25% Perturbation | KLDiv | without Softmax | without last layer | CIFAR10 ")
+    fig.suptitle("t_SNE | "+str(data_suffix)+" | $\epsilon=0.5$ | iters=100 | 50% Perturbation | KLDiv | without Softmax | without last layer | CIFAR10 ")
 
     ax0 = fig.add_subplot(511)
     ax1 = fig.add_subplot(512)
@@ -152,27 +152,37 @@ if __name__ == "__main__":
 
     print("[ Visualize.. ]")
     classes = [0,1,2,3,4,5,6,7,8,9]
-    important_classes = [target_class, new_class]
-    colors = ['lightsteelblue','lightsteelblue','lightsteelblue','lightsteelblue','lightsteelblue', 'mediumseagreen', 'mediumseagreen', 'mediumseagreen', 'mediumseagreen', 'mediumseagreen']
-    colors2 = ['red', 'green', 'blue', 'lime', 'cornflowerblue', 'magenta', 'gray', 'teal', 'olive', 'peru']
-
     _, labels = list(whole_loader)[0]
 
     for single_class in classes:
         indices = [i for i, l in enumerate(labels) if l == single_class] #erstellt indizes der jeweiligen klasse zum plotten
 
-        if single_class in important_classes:
+        if single_class == target_class:
             current_tx0, current_ty0 = np.take(tx0, indices), np.take(ty0, indices)
             current_tx1, current_ty1 = np.take(tx1, indices), np.take(ty1, indices)
             current_tx2, current_ty2 = np.take(tx2, indices), np.take(ty2, indices)
             current_tx3, current_ty3 = np.take(tx3, indices), np.take(ty3, indices)
             current_tx4, current_ty4 = np.take(tx4, indices), np.take(ty4, indices)
 
-            ax0.scatter(current_tx0, current_ty0, c=colors[single_class], label=class_dict[single_class], edgecolors='none', alpha=0.5)
-            ax1.scatter(current_tx1, current_ty1, c=colors[single_class], label=class_dict[single_class], edgecolors='none', alpha=0.5)
-            ax2.scatter(current_tx2, current_ty2, c=colors[single_class], label=class_dict[single_class], edgecolors='none', alpha=0.5)
-            ax3.scatter(current_tx3, current_ty3, c=colors[single_class], label=class_dict[single_class], edgecolors='none', alpha=0.5)
-            ax4.scatter(current_tx4, current_ty4, c=colors[single_class], label=class_dict[single_class], edgecolors='none', alpha=0.5)
+            ax0.scatter(current_tx0, current_ty0, c='lightsteelblue', label=class_dict[single_class], edgecolors='none', alpha=0.5)
+            ax1.scatter(current_tx1, current_ty1, c='lightsteelblue', label=class_dict[single_class], edgecolors='none', alpha=0.5)
+            ax2.scatter(current_tx2, current_ty2, c='lightsteelblue', label=class_dict[single_class], edgecolors='none', alpha=0.5)
+            ax3.scatter(current_tx3, current_ty3, c='lightsteelblue', label=class_dict[single_class], edgecolors='none', alpha=0.5)
+            ax4.scatter(current_tx4, current_ty4, c='lightsteelblue', label=class_dict[single_class], edgecolors='none', alpha=0.5)
+
+        if single_class == new_class:
+            current_tx0, current_ty0 = np.take(tx0, indices), np.take(ty0, indices)
+            current_tx1, current_ty1 = np.take(tx1, indices), np.take(ty1, indices)
+            current_tx2, current_ty2 = np.take(tx2, indices), np.take(ty2, indices)
+            current_tx3, current_ty3 = np.take(tx3, indices), np.take(ty3, indices)
+            current_tx4, current_ty4 = np.take(tx4, indices), np.take(ty4, indices)
+
+            ax0.scatter(current_tx0, current_ty0, c='mediumseagreen', label=class_dict[single_class], edgecolors='none', alpha=0.5)
+            ax1.scatter(current_tx1, current_ty1, c='mediumseagreen', label=class_dict[single_class], edgecolors='none', alpha=0.5)
+            ax2.scatter(current_tx2, current_ty2, c='mediumseagreen', label=class_dict[single_class], edgecolors='none', alpha=0.5)
+            ax3.scatter(current_tx3, current_ty3, c='mediumseagreen', label=class_dict[single_class], edgecolors='none', alpha=0.5)
+            ax4.scatter(current_tx4, current_ty4, c='mediumseagreen', label=class_dict[single_class], edgecolors='none', alpha=0.5)
+
 
     poisons_tx0, poisons_ty0 = np.take(tx0, poison_ids), np.take(ty0, poison_ids)
     poisons_tx1, poisons_ty1 = np.take(tx1, poison_ids), np.take(ty1, poison_ids)
@@ -209,4 +219,7 @@ if __name__ == "__main__":
     ax2.legend(loc='best')
     ax3.legend(loc='best')
     ax4.legend(loc='best')
-    plt.show()
+
+    fig.set_size_inches(20, 10)
+    plt.savefig('results/'+ str(data_suffix) +'_results/tsne_'+ str(data_suffix) +'.png')
+    #plt.show()
