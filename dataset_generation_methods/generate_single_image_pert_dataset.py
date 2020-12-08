@@ -137,10 +137,13 @@ def generate_single_image_pertubed_dataset(model_name, output_name, target_class
                 activation = model_cpu(advs)
                 dataset_loss_dict[idx] = loss_function(activation.to('cpu'), new_class_input.to('cpu'))
 
+    sorted_dataset_loss_dict = sorted(dataset_loss_dict.items(), key=lambda x: x[1])
     if pertube_count == 1.0:
         new_images_final = new_images
+        id_list = []
+        for id, loss in sorted_dataset_loss_dict:
+            id_list.append(id)
     else:
-        sorted_dataset_loss_dict = sorted(dataset_loss_dict.items(), key=lambda x: x[1])
         id_list = []
         for id, loss in sorted_dataset_loss_dict:
             if current_pertube_count <= np.floor((pertube_count * len(sorted_dataset_loss_dict))):

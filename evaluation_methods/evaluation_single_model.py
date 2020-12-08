@@ -9,6 +9,8 @@ import matplotlib.pyplot as plt
 from advertorch.attacks import LinfPGDAttack, L2PGDAttack
 import pkbar
 
+class_dict = {0:"Airplane", 1:"Auto", 2:"Bird", 3:"Cat", 4:"Deer", 5:"Dog", 6:"Frog", 7:"Horse", 8:"Ship", 9:"Truck"}
+loss_dict = {0:"BCE_WithLogits", 1:"Wasserstein", 2:"KLDiv"}
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 def get_loader():
@@ -24,7 +26,7 @@ def get_model(model_name):
     return net
 
 
-def single_model_evaluation(model_name, save_path):
+def single_model_evaluation(model_name, save_path, target_class, new_class, EPS, ITERS, pert_count, loss_function):
     '''
     Evaluates a single model using normal and pertubed images of the whole cifar10 test dataset
 
@@ -64,13 +66,13 @@ def single_model_evaluation(model_name, save_path):
 
     labels = [model_name]
     x = np.arange(len(labels))
-    width = 0.3
-    fig, ax = plt.subplots()
+    width = 0.03
+    fig, ax = plt.subplots(figsize=(15,5))
     std_rect = ax.bar(x - width/2, benign, width, label='Std. Acc.')
     advs_rect = ax.bar(x + width/2, advs, width, label='Advs. Acc.')
 
     ax.set_ylabel('Accuracy in Percent')
-    ax.set_title('Evaluation')
+    ax.set_title('Evaluation: ' + str(class_dict[target_class]) + " to " + str(class_dict[new_class]) + " | $\epsilon= "+str(EPS)+"$ | iters="+str(ITERS)+" | "+str(pert_count)+" Perturbation | "+str(loss_dict[loss_function])+" | without 2 last layers)")
     ax.set_xticks(x)
     ax.set_xticklabels(labels)
     ax.legend()

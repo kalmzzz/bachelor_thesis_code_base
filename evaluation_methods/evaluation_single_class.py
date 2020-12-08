@@ -11,6 +11,7 @@ import pkbar
 import matplotlib as mpl
 
 class_dict = {0:"Airplane", 1:"Auto", 2:"Bird", 3:"Cat", 4:"Deer", 5:"Dog", 6:"Frog", 7:"Horse", 8:"Ship", 9:"Truck"}
+loss_dict = {0:"BCE_WithLogits", 1:"Wasserstein", 2:"KLDiv"}
 #device = 'cuda' if torch.cuda.is_available() else 'cpu'
 device = 'cpu'
 
@@ -72,7 +73,7 @@ def test(target_class, model_name, new_class=None):
     return benign
 
 
-def evaluate_single_class(model_name, save_path, target_class, new_class):
+def evaluate_single_class(model_name, save_path, target_class, new_class, EPS, ITERS, pert_count, loss_function):
     print('\n[ Evaluation Start ]')
 
     benign  = test(target_class=new_class, model_name = model_name)
@@ -97,13 +98,13 @@ def evaluate_single_class(model_name, save_path, target_class, new_class):
     mpl.style.use('seaborn-deep')
     labels = ["airplane", "auto", "bird", "cat", "deer", "dog", "frog", "horse", "ship", "truck"]
     colors = ["cornflowerblue", "cornflowerblue", "cornflowerblue", "cornflowerblue", "cornflowerblue", "cornflowerblue", "cornflowerblue", "cornflowerblue", "cornflowerblue", "cornflowerblue"]
-    x = np.arange(len(labels))
+    x = np.arange(10)
     y = np.arange(100)
     width = 0.3
 
     # fig, ((ax, ax2, ax3), (ax4, ax5, ax6), (ax7, ax8, ax9), (ax10, ax11, ax12), (ax13, ax14, ax15)) = plt.subplots(5, 3, figsize=(15,20))
     fig, (ax, ax2) = plt.subplots(1, 2, figsize=(15,5))
-    fig.suptitle("" + str(class_dict[target_class]) + " to " + str(class_dict[new_class]))
+    fig.suptitle(str(class_dict[target_class]) + " to " + str(class_dict[new_class]) + " | $\epsilon= "+str(EPS)+"$ | iters="+str(ITERS)+" | "+str(pert_count)+" Perturbation | "+str(loss_dict[loss_function])+" | without 2 last layers")
 
 # --------------------------------------------------------------------------------------------------------------------------
     std_rect = ax.bar(x - width/2, benign, width, label='Acc.')

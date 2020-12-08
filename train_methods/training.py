@@ -56,18 +56,15 @@ def get_loaders(data_suffix, batch_size, data_augmentation):
     return train_loader
 
 
-def get_model(complex):
-    if complex:
-        net = CNN_complex()
-    else:
-        net = CNN()
+def get_model():
+    net = CNN()
     net = net.to(device)
     return net
 
 
-def train(epochs, learning_rate, complex, output_name, data_suffix, batch_size, data_augmentation=False):
+def train(epochs, learning_rate, output_name, data_suffix, batch_size, data_augmentation=False):
     print("[ Initialize Training ]")
-    net = get_model(complex)
+    net = get_model()
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(net.parameters(), lr=learning_rate, momentum=0.9, weight_decay=5e-4)
     train_loader = get_loaders(data_suffix, batch_size, data_augmentation)

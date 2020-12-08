@@ -65,7 +65,7 @@ def get_model(model_name):
 
 # ---------------------------------------------------
 
-def analyze_layers(EPS, ITERS, target_class, new_class, save_path, model_name, pert_count, grad_thresh, loss_fn, target_id=None):
+def analyze_layers(EPS, ITERS, target_class, new_class, save_path, model_name, pert_count, loss_fn, target_id=None):
     '''
     analyzes the whole layer activation of the second last and last layer.
     input: target_class, new_class (to compare and generate adversary example)
@@ -122,7 +122,7 @@ def analyze_layers(EPS, ITERS, target_class, new_class, save_path, model_name, p
     #    >"+str(grad_thresh)+" Grads |
     print("[ Visualize .. ]")
     fig, axes = plt.subplots(3, 4, figsize=(15,10))
-    fig.suptitle("model activations | input_id: "+str(target_id)+" | $\epsilon= "+str(EPS)+"$ | iters="+str(ITERS)+" | "+str(pert_count)+" Perturbation | "+str(loss_function)+" | without Softmax | without 2 last layers | " + str(date))
+    fig.suptitle("model activations | input_id: "+str(target_id)+" | $\epsilon= "+str(EPS)+"$ | iters="+str(ITERS)+" | "+str(pert_count)+" Perturbation | "+str(loss_function)+" | without 2 last layers | " + str(date))
     axes[0][0].imshow(np.moveaxis(input_target.cpu().squeeze().numpy(), 0, -1))
     axes[0][0].set_title(str(class_dict[target_class]) + " Input Image")
     axes[0][0].axis('off')
