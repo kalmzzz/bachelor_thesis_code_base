@@ -12,7 +12,7 @@ from models import *
 from custom_modules import TensorDataset
 from advertorch.attacks import L2PGDAttack
 
-device = 'cuda' if torch.cuda.is_available() else 'cpu'
+#device = 'cuda' if torch.cuda.is_available() else 'cpu'
 save_epochs = [0, 24, 49, 74, 99]
 
 def save_model(path, file_name, net):
@@ -62,8 +62,10 @@ def get_model():
     return net
 
 
-def train(epochs, learning_rate, output_name, data_suffix, batch_size, data_augmentation=False):
+def train(epochs, learning_rate, output_name, data_suffix, batch_size, device_name, data_augmentation=False):
     print("[ Initialize Training ]")
+    global device
+    device = device_name
     net = get_model()
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(net.parameters(), lr=learning_rate, momentum=0.9, weight_decay=5e-4)

@@ -15,7 +15,7 @@ BCE, WASSERSTEIN, KLDIV = 0, 1, 2
 cudnn.benchmark = True
 # cudnn.deterministic=True
 
-
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 
 # ---------------- Parameters -----------------------

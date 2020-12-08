@@ -26,7 +26,14 @@ BATCH_SIZE = 128
 if __name__ == "__main__":
     start = time.perf_counter()
 
-    device = sys.argv[0]
+    if sys.argv is None:
+        device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    if sys.argv[1] == "0":
+        device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
+    if sys.argv[1] == "1":
+        device = 'cuda:1' if torch.cuda.is_available() else 'cpu'
+
+    print("Start Calculating on Device: " + str(device))
 
     epsilon = [2.0, 1.0, 0.75, 0.5, 0.25, 0.1]
     perturbation_counts = [1.0, 0.75, 0.5, 0.25] #gibt an wieviel Prozent der Zielklasse "perturbed" sein sollen
@@ -50,13 +57,13 @@ if __name__ == "__main__":
 
                 DATASET_NAME = "single_"+str(class_dict[TARGET_CLASS]).lower()+"_to_"+str(class_dict[NEW_CLASS]).lower()+"_"+str(loss_dict[LOSS_FN])+"_"+str(PERT_COUNT)+"_pertcount_"+str(EPS)+"_eps"
                 best_image_id = CUSTOM_BEST_IMAGE_ID
-                best_image_id = generate_single_image_pertubed_dataset(model_name="basic_training", output_name=DATASET_NAME, target_class=TARGET_CLASS, new_class=NEW_CLASS, EPS=EPS, ITERS=ITERS, pertube_count=PERT_COUNT, loss_fn=LOSS_FN, custom_id=CUSTOM_BEST_IMAGE_ID)
+                best_image_id = generate_single_image_pertubed_dataset(model_name="basic_training", output_name=DATASET_NAME, target_class=TARGET_CLASS, new_class=NEW_CLASS, EPS=EPS, ITERS=ITERS, pertube_count=PERT_COUNT, loss_fn=LOSS_FN, custom_id=CUSTOM_BEST_IMAGE_ID, device_name=device)
 
-                train(epochs=EPOCHS, learning_rate=LR, output_name="basic_training_"+str(DATASET_NAME), data_suffix=DATASET_NAME, batch_size=BATCH_SIZE, data_augmentation=True)
+                train(epochs=EPOCHS, learning_rate=LR, output_name="basic_training_"+str(DATASET_NAME), data_suffix=DATASET_NAME, batch_size=BATCH_SIZE, device_name=device, data_augmentation=True)
 
-                analyze_layers(EPS, ITERS, target_class=TARGET_CLASS, new_class=NEW_CLASS, save_path=result_path, model_name="basic_training_"+str(DATASET_NAME), target_id=best_image_id, pert_count=PERT_COUNT, loss_fn=LOSS_FN)
-                evaluate_single_class(model_name="basic_training_"+str(DATASET_NAME), save_path=result_path, target_class=TARGET_CLASS, new_class=NEW_CLASS, EPS=EPS, ITERS=ITERS, pert_count=PERT_COUNT, loss_function=LOSS_FN)
-                single_model_evaluation(model_name="basic_training_"+str(DATASET_NAME), save_path=result_path, target_class=TARGET_CLASS, new_class=NEW_CLASS, EPS=EPS, ITERS=ITERS, pert_count=PERT_COUNT, loss_function=LOSS_FN)
+                analyze_layers(EPS, ITERS, target_class=TARGET_CLASS, new_class=NEW_CLASS, save_path=result_path, model_name="basic_training_"+str(DATASET_NAME), target_id=best_image_id, pert_count=PERT_COUNT, loss_fn=LOSS_FN, device_name=device)
+                evaluate_single_class(model_name="basic_training_"+str(DATASET_NAME), save_path=result_path, target_class=TARGET_CLASS, new_class=NEW_CLASS, EPS=EPS, ITERS=ITERS, pert_count=PERT_COUNT, loss_function=LOSS_FN, device_name=device)
+                single_model_evaluation(model_name="basic_training_"+str(DATASET_NAME), save_path=result_path, target_class=TARGET_CLASS, new_class=NEW_CLASS, EPS=EPS, ITERS=ITERS, pert_count=PERT_COUNT, loss_function=LOSS_FN, device_name=device)
 
 
     print("finished: [ " + str(DATASET_NAME) + " ]")

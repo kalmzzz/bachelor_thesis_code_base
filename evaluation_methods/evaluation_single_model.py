@@ -11,7 +11,7 @@ import pkbar
 
 class_dict = {0:"Airplane", 1:"Auto", 2:"Bird", 3:"Cat", 4:"Deer", 5:"Dog", 6:"Frog", 7:"Horse", 8:"Ship", 9:"Truck"}
 loss_dict = {0:"BCE_WithLogits", 1:"Wasserstein", 2:"KLDiv"}
-device = 'cuda' if torch.cuda.is_available() else 'cpu'
+#device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 def get_loader():
     test_dataset = torchvision.datasets.CIFAR10(root='./data', train=False, download=False, transform=transforms.ToTensor())
@@ -26,12 +26,14 @@ def get_model(model_name):
     return net
 
 
-def single_model_evaluation(model_name, save_path, target_class, new_class, EPS, ITERS, pert_count, loss_function):
+def single_model_evaluation(model_name, save_path, target_class, new_class, EPS, ITERS, pert_count, loss_function, device_name):
     '''
     Evaluates a single model using normal and pertubed images of the whole cifar10 test dataset
 
     '''
     print("[ Initialize ]")
+    global device
+    device = device_name
     net = get_model(model_name)
     test_loader = get_loader()
     adversary  = L2PGDAttack(net, loss_fn=nn.CrossEntropyLoss(), eps=0.25, nb_iter=100, eps_iter=0.01, rand_init=True, clip_min=0.0, clip_max=1.0, targeted=False)

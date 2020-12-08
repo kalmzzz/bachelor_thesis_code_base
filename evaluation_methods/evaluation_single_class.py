@@ -73,9 +73,10 @@ def test(target_class, model_name, new_class=None):
     return benign
 
 
-def evaluate_single_class(model_name, save_path, target_class, new_class, EPS, ITERS, pert_count, loss_function):
+def evaluate_single_class(model_name, save_path, target_class, new_class, EPS, ITERS, pert_count, loss_function, device_name):
     print('\n[ Evaluation Start ]')
-
+    global device
+    device = device_name
     benign  = test(target_class=new_class, model_name = model_name)
     benign2 = test(target_class=target_class, model_name = model_name)
 

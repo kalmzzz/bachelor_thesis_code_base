@@ -17,7 +17,7 @@ from models import *
 
 class_dict = {0:"Airplane", 1:"Auto", 2:"Bird", 3:"Cat", 4:"Deer", 5:"Dog", 6:"Frog", 7:"Horse", 8:"Ship", 9:"Truck"}
 BCE, WASSERSTEIN, KLDIV = 0, 1, 2
-device = 'cuda' if torch.cuda.is_available() else 'cpu'
+#device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 def get_date():
     d = datetime.now()
@@ -65,13 +65,14 @@ def get_model(model_name):
 
 # ---------------------------------------------------
 
-def analyze_layers(EPS, ITERS, target_class, new_class, save_path, model_name, pert_count, loss_fn, target_id=None):
+def analyze_layers(EPS, ITERS, target_class, new_class, save_path, model_name, pert_count, loss_fn, device_name, target_id=None):
     '''
     analyzes the whole layer activation of the second last and last layer.
     input: target_class, new_class (to compare and generate adversary example)
     '''
     print("[ Initialize .. ]")
-
+    global device
+    device = device_name
     loss_function = ""
     if loss_fn == KLDIV:
         loss_function = "KLDiv"

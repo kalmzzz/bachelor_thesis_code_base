@@ -16,7 +16,7 @@ from custom_modules.loss import *
 
 BCE, WASSERSTEIN, KLDIV = 0, 1, 2
 
-device = 'cuda' if torch.cuda.is_available() else 'cpu'
+#device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 def get_model(model_name, device_string, layers=None):
     net = CNN()
@@ -54,8 +54,10 @@ def get_model(model_name, device_string, layers=None):
 
 # ---------------------------------------------------
 
-def generate_single_image_pertubed_dataset(model_name, output_name, target_class, new_class, EPS, ITERS, pertube_count, loss_fn, custom_id):
+def generate_single_image_pertubed_dataset(model_name, output_name, target_class, new_class, EPS, ITERS, pertube_count, loss_fn, custom_id, device_name):
     print("[ Initialize.. ]")
+    global device
+    device = device_name
     model = get_model(model_name, device_string=device, layers=2)
     model_cpu = get_model(model_name, device_string='cpu', layers=2)
     model_complete = get_model(model_name, device_string=device, layers=None)
