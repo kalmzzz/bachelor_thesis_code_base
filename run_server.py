@@ -16,8 +16,8 @@ AIRPLANE, AUTO, BIRD, CAT, DEER, DOG, FROG, HORSE, SHIP, TRUCK = 0, 1, 2, 3, 4, 
 class_dict = {0:"Airplane", 1:"Auto", 2:"Bird", 3:"Cat", 4:"Deer", 5:"Dog", 6:"Frog", 7:"Horse", 8:"Ship", 9:"Truck"}
 loss_dict = {0:"BCE_WithLogits", 1:"Wasserstein", 2:"KLDiv"}
 BCE, WASSERSTEIN, KLDIV = 0, 1, 2
-ITERS = 1 #wiederholungen von pgd
-EPOCHS = 1
+ITERS = 100 #wiederholungen von pgd
+EPOCHS = 100
 LR = 0.1
 BATCH_SIZE = 128
 
