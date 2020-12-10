@@ -57,7 +57,7 @@ if __name__ == "__main__":
 
                 DATASET_NAME = "single_"+str(class_dict[TARGET_CLASS]).lower()+"_to_"+str(class_dict[NEW_CLASS]).lower()+"_"+str(loss_dict[LOSS_FN])+"_"+str(PERT_COUNT)+"_pertcount_"+str(EPS)+"_eps"
                 best_image_id = CUSTOM_BEST_IMAGE_ID
-                best_image_id = generate_single_image_pertubed_dataset(model_name="basic_training", output_name=DATASET_NAME, target_class=TARGET_CLASS, new_class=NEW_CLASS, EPS=EPS, ITERS=ITERS, pertube_count=PERT_COUNT, loss_fn=LOSS_FN, custom_id=CUSTOM_BEST_IMAGE_ID, device_name=device)
+                best_image_id = generate_single_image_pertubed_dataset(model_name="basic_training", output_name=DATASET_NAME, target_class=TARGET_CLASS, new_class=NEW_CLASS, EPS=EPS, ITERS=ITERS, pertube_count=PERT_COUNT, loss_fn=LOSS_FN, custom_id=CUSTOM_BEST_IMAGE_ID, device_name=device, layer_cut=LAYER)
 
                 train(epochs=EPOCHS, learning_rate=LR, output_name="basic_training_"+str(DATASET_NAME), data_suffix=DATASET_NAME, batch_size=BATCH_SIZE, device_name=device, data_augmentation=True)
 

@@ -37,6 +37,7 @@ TARGET_CLASS = DEER
 NEW_CLASS = AUTO
 
 LOSS_FN = KLDIV
+LAYER = 2 #wieviele Dense Layer abgeschnitten werden sollen
 
 DATASET_NAME = "single_deer_to_auto_kldiv_no_softmax"
 CUSTOM_BEST_IMAGE_ID = None #wenn nicht das beste bild genommen werden soll, kann man hier eine wunsch id einsetzen
@@ -50,7 +51,7 @@ if __name__ == "__main__":
 
     #generate_pertubed_dataset_main(eps=EPS, iter=ITERS, target_class=TARGET_CLASS, new_class=NEW_CLASS, dataset_name=DATASET_NAME, inf=False, pertube_count=PERT_COUNT)
     best_image_id = CUSTOM_BEST_IMAGE_ID
-    best_image_id = generate_single_image_pertubed_dataset(model_name="basic_training", output_name=DATASET_NAME, target_class=TARGET_CLASS, new_class=NEW_CLASS, EPS=EPS, ITERS=ITERS, pertube_count=PERT_COUNT, loss_fn=LOSS_FN, custom_id=CUSTOM_BEST_IMAGE_ID)
+    best_image_id = generate_single_image_pertubed_dataset(model_name="basic_training", output_name=DATASET_NAME, target_class=TARGET_CLASS, new_class=NEW_CLASS, EPS=EPS, ITERS=ITERS, pertube_count=PERT_COUNT, loss_fn=LOSS_FN, custom_id=CUSTOM_BEST_IMAGE_ID, device_name=device, layer_cut=LAYER)
     #best_image_id = generate_single_image_pertubed_dataset_gradients(output_name=DATASET_NAME, target_class=TARGET_CLASS, new_class=NEW_CLASS, pertube_count=PERT_COUNT_GRADS, gradient_threshold=GRADIENT_THRESHOLD)
 
 # ------------------- Training --------------------------------
@@ -59,6 +60,7 @@ if __name__ == "__main__":
           learning_rate=LR,
           complex=False,
           output_name="basic_training_"+str(DATASET_NAME),
+          device_name=device,
           #output_name="basic_training_non_robust_no_softmax",
           #data_suffix="L2_"+str(DATASET_NAME)+"_"+str(PERT_COUNT)+"pert_"+str(ITERS)+"iters_"+str(EPS)+"eps",
           data_suffix=DATASET_NAME,
@@ -72,11 +74,9 @@ if __name__ == "__main__":
     if not os.path.isdir(result_path):
         os.mkdir(result_path)
 
-    analyze_layers(EPS, ITERS, target_class=TARGET_CLASS, new_class=NEW_CLASS, save_path=result_path, model_name="basic_training_"+str(DATASET_NAME), target_id=best_image_id, pert_count=PERT_COUNT, grad_thresh=GRADIENT_THRESHOLD, loss_fn=LOSS_FN)
-
-    evaluate_single_class(model_name="basic_training_"+str(DATASET_NAME), save_path=result_path, target_class=TARGET_CLASS, new_class=NEW_CLASS)
-
-    single_model_evaluation(model_name="basic_training_"+str(DATASET_NAME), save_path=result_path)
+    analyze_layers(EPS, ITERS, target_class=TARGET_CLASS, new_class=NEW_CLASS, save_path=result_path, model_name="basic_training_"+str(DATASET_NAME), target_id=best_image_id, pert_count=PERT_COUNT, loss_fn=LOSS_FN, device_name=device)
+    evaluate_single_class(model_name="basic_training_"+str(DATASET_NAME), save_path=result_path, target_class=TARGET_CLASS, new_class=NEW_CLASS, EPS=EPS, ITERS=ITERS, pert_count=PERT_COUNT, loss_function=LOSS_FN, device_name=device)
+    single_model_evaluation(model_name="basic_training_"+str(DATASET_NAME), save_path=result_path, target_class=TARGET_CLASS, new_class=NEW_CLASS, EPS=EPS, ITERS=ITERS, pert_count=PERT_COUNT, loss_function=LOSS_FN, device_name=device)
 
     #analyze_general_layer_activation(target_class=TARGET_CLASS)
 

@@ -5,6 +5,7 @@ from torch.utils.data import Dataset
 import torch.nn.functional as F
 import torchvision
 import torchvision.transforms as transforms
+from custom_modules import TensorDataset
 from advertorch.attacks import L2PGDAttack
 import os
 import numpy as np
@@ -18,7 +19,7 @@ BCE, WASSERSTEIN, KLDIV = 0, 1, 2
 
 #device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-def get_model(model_name, device_string, layers=None):
+def get_model(model_name, device_string, layers=1):
     net = CNN()
     checkpoint = torch.load('./model_saves/'+str(model_name)+'/'+str(model_name))
     if layers == 2:
@@ -54,16 +55,23 @@ def get_model(model_name, device_string, layers=None):
 
 # ---------------------------------------------------
 
-def generate_single_image_pertubed_dataset(model_name, output_name, target_class, new_class, EPS, ITERS, pertube_count, loss_fn, custom_id, device_name):
+def generate_single_image_pertubed_dataset(model_name, output_name, target_class, new_class, EPS, ITERS, pertube_count, loss_fn, custom_id, device_name, layer_cut=1):
     print("[ Initialize.. ]")
     global device
     device = device_name
-    model = get_model(model_name, device_string=device, layers=2)
+    model = get_model(model_name, device_string=device, layers=layer_cut)
     model_cpu = get_model(model_name, device_string='cpu', layers=2)
     model_complete = get_model(model_name, device_string=device, layers=None)
 
     train_dataset = torchvision.datasets.CIFAR10(root='./data', train=True, download=False, transform=transforms.ToTensor())
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=len(train_dataset), shuffle=False, num_workers=1)
+
+    train_images, train_labels = list(train_loader)[0]
+    train_images = torch.Tensor(train_images).to(device)
+    train_labels = torch.LongTensor(train_labels).to(device)
+    train_dataset_gpu = TensorDataset(train_images, train_labels, transform=transforms.ToTensor())
+    train_loader_gpu = torch.utils.data.DataLoader(train_dataset_gpu, batch_size=len(train_dataset), shuffle=False, num_workers=0)
+
     test_dataset = torchvision.datasets.CIFAR10(root='./data', train=False, download=False, transform=transforms.ToTensor())
 
     loss_function = None
@@ -130,7 +138,7 @@ def generate_single_image_pertubed_dataset(model_name, output_name, target_class
 
     adversary = L2PGDAttack(model, loss_fn=loss_class, eps=EPS, nb_iter=ITERS, eps_iter=(EPS/10.), rand_init=True, clip_min=0.0, clip_max=1.0, targeted=True)
 
-    for idx, (input, target) in tqdm(enumerate(train_dataset)):
+    for idx, (input, target) in tqdm(enumerate(train_dataset_gpu)):
         input = input.to(device)
         if target == new_class:
             advs = adversary.perturb(torch.unsqueeze(input, 0), new_class_input.to(device)).to('cpu')
@@ -175,5 +183,7 @@ def generate_single_image_pertubed_dataset(model_name, output_name, target_class
     del test_dataset
     del train_dataset
     del train_loader
+    del train_dataset_gpu
+    del train_loader_gpu
 
     return best_image_id
