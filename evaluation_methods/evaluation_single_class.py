@@ -33,7 +33,7 @@ def test(target_class, model_name, new_class=None):
     #adversary  = L2PGDAttack(net, loss_fn=nn.CrossEntropyLoss(), eps=1.0, nb_iter=12, eps_iter=0.2, rand_init=True, clip_min=0.0, clip_max=1.0, targeted=True)
 
     for batch_idx, (inputs, targets) in enumerate(tqdm(test_loader)):
-        # inputs, targets = inputs.to(device), targets.to(device)
+        inputs, targets = inputs.to(device), targets.to(device)
 
         target_ids = torch.where(targets == target_class)[0]
         for id in target_ids:
