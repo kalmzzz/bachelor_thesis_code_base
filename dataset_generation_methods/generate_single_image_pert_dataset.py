@@ -120,7 +120,7 @@ def generate_single_image_pertubed_dataset(model_name, output_name, target_class
         print("[ Compute Target Activations.. ]")
         for idx, (input, target) in enumerate(test_dataset):
             input = input.to(device)
-            if target == target_class:
+            if idx == custom_id:
                 new_class_input =  model(torch.unsqueeze(input, 0))
                 best_image_id = idx
                 break
