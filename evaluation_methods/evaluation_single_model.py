@@ -26,7 +26,7 @@ def get_model(model_name):
     return net
 
 
-def single_model_evaluation(model_name, save_path, target_class, new_class, EPS, ITERS, pert_count, loss_function, device_name):
+def single_model_evaluation(model_name, save_path, target_class, new_class, EPS, ITERS, pert_count, loss_function, device_name, layer_cut):
     '''
     Evaluates a single model using normal and pertubed images of the whole cifar10 test dataset
 
@@ -72,9 +72,14 @@ def single_model_evaluation(model_name, save_path, target_class, new_class, EPS,
     fig, ax = plt.subplots(figsize=(15,5))
     std_rect = ax.bar(x - width/2, benign, width, label='Std. Acc.')
     advs_rect = ax.bar(x + width/2, advs, width, label='Advs. Acc.')
+    layer_string = ""
+    if layer_cut == 2:
+        layer_string = "without 2 last layers"
+    if layer_cut == 1:
+        layer_string = "without 1 last layers"
 
     ax.set_ylabel('Accuracy in Percent')
-    ax.set_title('Evaluation: ' + str(class_dict[target_class]) + " to " + str(class_dict[new_class]) + " | $\epsilon= "+str(EPS)+"$ | iters="+str(ITERS)+" | "+str(pert_count)+" Perturbation | "+str(loss_dict[loss_function])+" | without 2 last layers)")
+    ax.set_title('Evaluation: ' + str(class_dict[target_class]) + " to " + str(class_dict[new_class]) + " | $\epsilon= "+str(EPS)+"$ | iters="+str(ITERS)+" | "+str(pert_count)+" Perturbation | "+str(loss_dict[loss_function])+" | "+str(layer_string))
     ax.set_xticks(x)
     ax.set_xticklabels(labels)
     ax.legend()

@@ -73,12 +73,17 @@ def test(target_class, model_name, new_class=None):
     return benign
 
 
-def evaluate_single_class(model_name, save_path, target_class, new_class, EPS, ITERS, pert_count, loss_function, device_name):
+def evaluate_single_class(model_name, save_path, target_class, new_class, EPS, ITERS, pert_count, loss_function, device_name, layer_cut):
     print('\n[ Evaluation Start ]')
     global device
     device = device_name
     benign  = test(target_class=new_class, model_name = model_name)
     benign2 = test(target_class=target_class, model_name = model_name)
+    layer_string = ""
+    if layer_cut == 2:
+        layer_string = "without 2 last layers"
+    if layer_cut == 1:
+        layer_string = "without 1 last layers"
 
     # benign4 = test(target_class=5, model_name = 'basic_training_single_cat_to_dog')
     # benign5 = test(target_class=3, model_name = 'basic_training_single_cat_to_dog')
@@ -105,7 +110,7 @@ def evaluate_single_class(model_name, save_path, target_class, new_class, EPS, I
 
     # fig, ((ax, ax2, ax3), (ax4, ax5, ax6), (ax7, ax8, ax9), (ax10, ax11, ax12), (ax13, ax14, ax15)) = plt.subplots(5, 3, figsize=(15,20))
     fig, (ax, ax2) = plt.subplots(1, 2, figsize=(15,5))
-    fig.suptitle(str(class_dict[target_class]) + " to " + str(class_dict[new_class]) + " | $\epsilon= "+str(EPS)+"$ | iters="+str(ITERS)+" | "+str(pert_count)+" Perturbation | "+str(loss_dict[loss_function])+" | without 2 last layers")
+    fig.suptitle(str(class_dict[target_class]) + " to " + str(class_dict[new_class]) + " | $\epsilon= "+str(EPS)+"$ | iters="+str(ITERS)+" | "+str(pert_count)+" Perturbation | "+str(loss_dict[loss_function])+" | " + str(layer_string))
 
 # --------------------------------------------------------------------------------------------------------------------------
     std_rect = ax.bar(x - width/2, benign, width, label='Acc.')
