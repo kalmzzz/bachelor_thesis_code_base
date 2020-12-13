@@ -60,7 +60,7 @@ def generate_single_image_pertubed_dataset(model_name, output_name, target_class
     global device
     device = device_name
     model = get_model(model_name, device_string=device, layers=layer_cut)
-    model_cpu = get_model(model_name, device_string='cpu', layers=2)
+    model_cpu = get_model(model_name, device_string='cpu', layers=layer_cut)
     model_complete = get_model(model_name, device_string=device, layers=None)
 
     train_dataset = torchvision.datasets.CIFAR10(root='./data', train=True, download=False, transform=transforms.ToTensor())
