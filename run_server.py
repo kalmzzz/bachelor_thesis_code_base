@@ -36,7 +36,7 @@ if __name__ == "__main__":
     print("Start Calculating on Device: " + str(device))
 
     epsilon = [2.0, 1.0, 0.75, 0.5, 0.25, 0.1]
-    perturbation_counts = [0.5]#[1.0, 0.75, 0.5, 0.25] #gibt an wieviel Prozent der Zielklasse "perturbed" sein sollen
+    perturbation_counts = [0.25]#[1.0, 0.75, 0.5, 0.25] #gibt an wieviel Prozent der Zielklasse "perturbed" sein sollen
     loss_functions = [KLDIV]#, BCE, WASSERSTEIN]
     layer_cuts = [2, 1]
     TARGET_CLASS = DEER # Target Class wird als new class erkannt während new class normal erkannt wird
