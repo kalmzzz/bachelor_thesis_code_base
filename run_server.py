@@ -37,11 +37,11 @@ if __name__ == "__main__":
 
     epsilon = [2.0, 1.0, 0.75, 0.5, 0.25, 0.1]
     perturbation_counts = [0.5]#[1.0, 0.75, 0.5, 0.25] #gibt an wieviel Prozent der Zielklasse "perturbed" sein sollen
-    loss_functions = [BCE, WASSERSTEIN]
+    loss_functions = [KLDIV]
     layer_cuts = [2, 1]
-    TARGET_CLASS = DEER # Target Class wird als new class erkannt während new class normal erkannt wird
-    NEW_CLASS = HORSE
-    CUSTOM_BEST_IMAGE_ID = 9035 #wenn nicht das beste bild genommen werden soll, kann man hier eine wunsch id einsetzen
+    TARGET_CLASS = AIRPLANE # Target Class wird als new class erkannt während new class normal erkannt wird
+    NEW_CLASS = SHIP
+    CUSTOM_BEST_IMAGE_ID = None #wenn nicht das beste bild genommen werden soll, kann man hier eine wunsch id einsetzen
     #LAYER = 2 #wieviele Dense Layer abgeschnitten werden sollen
 
     SAVE_PATH = "single_"+str(class_dict[TARGET_CLASS]).lower()+"_to_"+str(class_dict[NEW_CLASS]).lower()
