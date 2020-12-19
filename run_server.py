@@ -25,7 +25,7 @@ BATCH_SIZE = 128
 
 # ------------------------------------------------------------------------------------------------------
 
-def main(eps, gpu, pert_counts, loss_fn, layer_cuts, target_class, new_class, image_id):
+def main(eps, gpu, pert_counts, loss_fn, layer_cuts, target_class, new_class, image_id, eval):
     start = time.perf_counter()
 
     global device
@@ -65,9 +65,10 @@ def main(eps, gpu, pert_counts, loss_fn, layer_cuts, target_class, new_class, im
 
                     DATASET_NAME = "single_"+str(class_dict[target_class]).lower()+"_to_"+str(class_dict[new_class]).lower()+"_"+str(loss_dict[LOSS_FN])+"_"+str(PERT_COUNT)+"_pertcount_"+str(EPS)+"_eps_"+str(LAYER)+"layer"
                     best_image_id = CUSTOM_BEST_IMAGE_ID
-                    best_image_id = generate_single_image_pertubed_dataset(model_name="basic_training", output_name=DATASET_NAME, target_class=target_class, new_class=new_class, EPS=EPS, ITERS=ITERS, pertube_count=PERT_COUNT, loss_fn=LOSS_FN, custom_id=CUSTOM_BEST_IMAGE_ID, device_name=device, layer_cut=LAYER)
 
-                    train(epochs=EPOCHS, learning_rate=LR, output_name="basic_training_"+str(DATASET_NAME), data_suffix=DATASET_NAME, batch_size=BATCH_SIZE, device_name=device, data_augmentation=True)
+                    if not eval:
+                        best_image_id = generate_single_image_pertubed_dataset(model_name="basic_training", output_name=DATASET_NAME, target_class=target_class, new_class=new_class, EPS=EPS, ITERS=ITERS, pertube_count=PERT_COUNT, loss_fn=LOSS_FN, custom_id=CUSTOM_BEST_IMAGE_ID, device_name=device, layer_cut=LAYER)
+                        train(epochs=EPOCHS, learning_rate=LR, output_name="basic_training_"+str(DATASET_NAME), data_suffix=DATASET_NAME, batch_size=BATCH_SIZE, device_name=device, data_augmentation=True)
 
                     analyze_layers(EPS, ITERS, target_class=target_class, new_class=new_class, save_path=result_path, model_name="basic_training_"+str(DATASET_NAME), target_id=best_image_id, pert_count=PERT_COUNT, loss_fn=LOSS_FN, device_name=device, layer_cut=LAYER)
                     evaluate_single_class(model_name="basic_training_"+str(DATASET_NAME), save_path=result_path, target_class=target_class, new_class=new_class, EPS=EPS, ITERS=ITERS, pert_count=PERT_COUNT, loss_function=LOSS_FN, device_name=device, layer_cut=LAYER)
@@ -93,6 +94,7 @@ if __name__ == "__main__":
     parser.add_argument("--target_class",    "-t", help="Target Class", type=str, required=True)
     parser.add_argument("--new_class",       "-n", help="New Class", type=str, required=True)
     parser.add_argument("--image_id",        "-i", help="Custom Best Image ID", type=int, default=None)
+    parser.add_argument("--eval",            "-v", help="Wont train, just evaluation", action='store_true')
 
     args = parser.parse_args()
 
