@@ -127,7 +127,7 @@ def analyze_layers(EPS, ITERS, target_class, new_class, save_path, model_name, p
 
 
     print("[ Visualize .. ]")
-    fig, axes = plt.subplots(2, 4, figsize=(15,10))
+    fig, axes = plt.subplots(2, 4, figsize=(13,7))
     fig.suptitle("model activations | input_id: "+str(target_id)+" | $\epsilon= "+str(EPS)+"$ | iters="+str(ITERS)+" | "+str(pert_count)+" Perturbation | "+str(loss_function)+" | "+str(layer_string)+" | " + str(date))
     axes[0][0].imshow(np.moveaxis(input_target.cpu().squeeze().numpy(), 0, -1))
     axes[0][0].set_title(str(class_dict[target_class]) + " Input Image")
@@ -157,10 +157,10 @@ def analyze_layers(EPS, ITERS, target_class, new_class, save_path, model_name, p
     # axes[1][3].axis('off')
 
     axes[1][0].imshow(np.moveaxis(input_new_class.cpu().squeeze().numpy(), 0, -1))
-    axes[1][0].set_title(str(class_dict[new_class]) + " Input Image")
+    axes[1][0].set_title("Example " + str(class_dict[new_class]) + " Input Image")
     axes[1][0].axis('off')
     axes[1][1].imshow(activations2, cmap="cool")
-    axes[1][1].set_title("Activations Second Last Layer")
+    axes[1][1].set_title("Activations Penultimate Layer")
     axes[1][1].axis('off')
     axes[1][2].imshow(activations_last2, cmap="cool")
     axes[1][2].set_title("Activations Last Layer")
