@@ -5,7 +5,8 @@ import torch.nn.functional as F
 import torch.backends.cudnn as cudnn
 import torchvision
 import torchvision.transforms as transforms
-from sklearn.manifold import TSNE
+#from sklearn.manifold import TSNE
+from MulticoreTSNE import MulticoreTSNE as TSNE
 import os
 import numpy as np
 from tqdm import tqdm
@@ -16,15 +17,16 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 class_dict = {0:"Airplane", 1:"Auto", 2:"Bird", 3:"Cat", 4:"Deer", 5:"Dog", 6:"Frog", 7:"Horse", 8:"Ship", 9:"Truck"}
 
 cudnn.benchmark = True
-transform_train = transforms.Compose([
-    transforms.ToTensor(),
-])
 
 def get_model():
     basic_net = CNN()
-    checkpoint = torch.load('./checkpoint/basic_training_single_deer_to_horse_kldiv_no_softmax')
+    checkpoint = torch.load('./checkpoint/basic_training')
     basic_net.fc_layer = nn.Sequential(
-        nn.Identity()
+        nn.Dropout(p=0.1),
+        nn.Linear(4096, 1024),
+        nn.ReLU(inplace=True),
+        nn.Linear(1024, 512),
+        nn.ReLU(inplace=True)
     )
     basic_net.load_state_dict(checkpoint['net'], strict=False)
     basic_net = basic_net.to(device)
@@ -41,7 +43,7 @@ def scale_to_01_range(x):
 if __name__ == "__main__":
     print("[ Initialize.. ]")
     model = get_model()
-    train_dataset = torchvision.datasets.CIFAR10(root='./data', train=False, download=False, transform=transform_train)
+    train_dataset = torchvision.datasets.CIFAR10(root='./data', train=False, download=False, transform=transforms.ToTensor())
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=128, shuffle=False, num_workers=4)
 
     features = None
@@ -66,7 +68,7 @@ if __name__ == "__main__":
     ty = scale_to_01_range(ty)
 
     fig = plt.figure()
-    fig.suptitle("t_SNE | basic_training_with_softmax | CIFAR10 | Testset")
+    fig.suptitle("t_SNE | basic_training | CIFAR10 | Testset")
     ax = fig.add_subplot(111)
 
     print("[ Visualize.. ]")
@@ -81,5 +83,6 @@ if __name__ == "__main__":
 
         ax.scatter(current_tx, current_ty, c=colors[single_class], label=class_dict[single_class])
 
+    ax.axis('off')
     ax.legend(loc='best')
     plt.show()

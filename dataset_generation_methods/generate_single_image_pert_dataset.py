@@ -46,6 +46,10 @@ def get_model(model_name, device_string, layers=1):
             nn.Linear(512, 10),
             nn.ReLU(inplace=True)
         )
+    if layers == -1:
+        net.fc_layer = nn.Sequential(
+            nn.Identity()
+        )
 
     net.load_state_dict(checkpoint['net'], strict=False)
     net = net.to(device_string)
