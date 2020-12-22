@@ -67,7 +67,7 @@ def main(eps, gpu, pert_counts, loss_fn, layer_cuts, target_class, new_class, im
                     best_image_id = CUSTOM_BEST_IMAGE_ID
 
                     if not eval:
-                        best_image_id = generate_single_image_pertubed_dataset(model_name="basic_training", output_name=DATASET_NAME, target_class=target_class, new_class=new_class, EPS=EPS, ITERS=ITERS, pertube_count=PERT_COUNT, loss_fn=LOSS_FN, custom_id=CUSTOM_BEST_IMAGE_ID, device_name=device, layer_cut=LAYER)
+                        best_image_id = generate_single_image_pertubed_dataset(model_name="basic_training", output_name=DATASET_NAME, target_class=target_class, new_class=new_class, EPS=EPS, ITERS=ITERS, pertube_count=PERT_COUNT, loss_fn=LOSS_FN, custom_id=best_image_id, device_name=device, layer_cut=LAYER)
                         train(epochs=EPOCHS, learning_rate=LR, output_name="basic_training_"+str(DATASET_NAME), data_suffix=DATASET_NAME, batch_size=BATCH_SIZE, device_name=device, data_augmentation=True)
 
                     analyze_layers(EPS, ITERS, target_class=target_class, new_class=new_class, save_path=result_path, model_name="basic_training_"+str(DATASET_NAME), target_id=best_image_id, pert_count=PERT_COUNT, loss_fn=LOSS_FN, device_name=device, layer_cut=LAYER)
