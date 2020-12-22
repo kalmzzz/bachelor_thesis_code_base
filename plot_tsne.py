@@ -43,7 +43,7 @@ def scale_to_01_range(x):
 if __name__ == "__main__":
     print("[ Initialize.. ]")
     model = get_model()
-    train_dataset = torchvision.datasets.CIFAR10(root='./data', train=False, download=False, transform=transforms.ToTensor())
+    train_dataset = torchvision.datasets.CIFAR10(root='./data', train=True, download=False, transform=transforms.ToTensor())
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=128, shuffle=False, num_workers=4)
 
     features = None
@@ -68,7 +68,7 @@ if __name__ == "__main__":
     ty = scale_to_01_range(ty)
 
     fig = plt.figure()
-    fig.suptitle("t_SNE | basic_training | CIFAR10 | Testset")
+    fig.suptitle("t_SNE | basic_training | CIFAR10 ")
     ax = fig.add_subplot(111)
 
     print("[ Visualize.. ]")
