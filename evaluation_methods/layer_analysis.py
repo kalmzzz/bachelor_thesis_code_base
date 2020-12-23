@@ -165,7 +165,7 @@ def analyze_layers(EPS, ITERS, target_class, new_class, save_path, model_name, p
     axes[1][1].set_title("Activations Penultimate Layer")
     axes[1][1].axis('off')
     axes[1][2].imshow(activations_last2, cmap="cool")
-    axes[1][2].set_title("Activations Last Layer")
+    axes[1][2].set_title("Activations Output Layer")
     axes[1][2].get_yaxis().set_visible(False)
     axes[1][3].get_xaxis().set_ticks(np.arange(10))
     axes[1][3].imshow(softmaxed_last2, cmap="cool")
