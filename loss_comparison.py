@@ -156,4 +156,4 @@ if __name__ == "__main__":
 
     fig.text(.5, .05, "Class 4: Deer, Class 7: Horse", ha='center')
     #plt.show()
-    plt.savefig('./results/loss_comparison_'+ str(name) +'.png', dpi=400)
+    plt.savefig('./results/loss_comparison_'+ str(NAME) +'.png', dpi=400)
