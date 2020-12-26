@@ -155,5 +155,5 @@ if __name__ == "__main__":
     axes[6][2].axis('off')
 
     fig.text(.5, .05, "Class 4: Deer, Class 7: Horse", ha='center')
-    plt.show()
-    #plt.savefig('./'+ str(save_path) +'/layer_eval_'+ str(model_name) +'.png', dpi=400)
+    #plt.show()
+    plt.savefig('./results/loss_comparison_'+ str(model_name) +'.png', dpi=400)
