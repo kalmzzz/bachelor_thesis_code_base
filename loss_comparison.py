@@ -50,8 +50,8 @@ if __name__ == "__main__":
     model_complete1 = get_model("basic_training_"+str(NAME)+"_2.0_eps_2layer")
     model_complete2 = get_model("basic_training_"+str(NAME)+"_1.0_eps_2layer")
     model_complete3 = get_model("basic_training_"+str(NAME)+"_0.75_eps_2layer")
-    model_complete5 = get_model("basic_training_"+str(NAME)+"_0.5_eps_2layer")
-    model_complete4 = get_model("basic_training_"+str(NAME)+"_0.25_eps_2layer")
+    model_complete4 = get_model("basic_training_"+str(NAME)+"_0.5_eps_2layer")
+    model_complete5 = get_model("basic_training_"+str(NAME)+"_0.25_eps_2layer")
     model_complete6 = get_model("basic_training_"+str(NAME)+"_0.1_eps_2layer")
 
     loader1, loader2 = get_loader()
