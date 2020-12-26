@@ -42,11 +42,11 @@ def scale_to_01_range(x):
 
 
 if __name__ == "__main__":
-    target_class = TRUCK
-    new_class = DOG
+    target_class = DEER
+    new_class = HORSE
     normal_dataset = False
-    data_suffix = "single_truck_to_dog_kldiv_no_softmax"
-    target_image_id = 7491
+    data_suffix = "single_deer_to_horse"
+    target_image_id = 9035
     poison_ids = None
 
 
@@ -81,57 +81,57 @@ if __name__ == "__main__":
     whole_loader = torch.utils.data.DataLoader(dataset, batch_size=len(dataset), shuffle=False, num_workers=1)
 
 
-    features0, features1, features2, features3, features4 = None, None, None, None, None
-    for idx, (input, target) in tqdm(enumerate(dataset_loader), desc="Running Model Inference"):
-        input = input.to(device)
-        with torch.no_grad():
-            output0 = model0.forward(input)
-            output1 = model1.forward(input)
-            output2 = model2.forward(input)
-            output3 = model3.forward(input)
-            output4 = model4.forward(input)
+    # features0, features1, features2, features3, features4 = None, None, None, None, None
+    # for idx, (input, target) in tqdm(enumerate(dataset_loader), desc="Running Model Inference"):
+    #     input = input.to(device)
+    #     with torch.no_grad():
+    #         output0 = model0.forward(input)
+    #         output1 = model1.forward(input)
+    #         output2 = model2.forward(input)
+    #         output3 = model3.forward(input)
+    #         output4 = model4.forward(input)
+    #
+    #     current_features0 = output0.cpu().numpy()
+    #     current_features1 = output1.cpu().numpy()
+    #     current_features2 = output2.cpu().numpy()
+    #     current_features3 = output3.cpu().numpy()
+    #     current_features4 = output4.cpu().numpy()
+    #
+    #     if features0 is not None:
+    #         features0 = np.concatenate((features0, current_features0))
+    #         features1 = np.concatenate((features1, current_features1))
+    #         features2 = np.concatenate((features2, current_features2))
+    #         features3 = np.concatenate((features3, current_features3))
+    #         features4 = np.concatenate((features4, current_features4))
+    #     else:
+    #         features0 = current_features0
+    #         features1 = current_features1
+    #         features2 = current_features2
+    #         features3 = current_features3
+    #         features4 = current_features4
+    #
+    #
+    # print("[ Running TSNE ]")
+    # tsne0 = TSNE(n_components=2, verbose=1, n_jobs=-1).fit_transform(features0)
+    # tsne1 = TSNE(n_components=2, verbose=1, n_jobs=-1).fit_transform(features1)
+    # tsne2 = TSNE(n_components=2, verbose=1, n_jobs=-1).fit_transform(features2)
+    # tsne3 = TSNE(n_components=2, verbose=1, n_jobs=-1).fit_transform(features3)
+    # tsne4 = TSNE(n_components=2, verbose=1, n_jobs=-1).fit_transform(features4)
 
-        current_features0 = output0.cpu().numpy()
-        current_features1 = output1.cpu().numpy()
-        current_features2 = output2.cpu().numpy()
-        current_features3 = output3.cpu().numpy()
-        current_features4 = output4.cpu().numpy()
+    tsne0 = torch.load('results/t_SNE/tsne0_'+str(data_suffix))
+    tsne1 = torch.load('results/t_SNE/tsne1_'+str(data_suffix))
+    tsne2 = torch.load('results/t_SNE/tsne2_'+str(data_suffix))
+    tsne3 = torch.load('results/t_SNE/tsne3_'+str(data_suffix))
+    tsne4 = torch.load('results/t_SNE/tsne4_'+str(data_suffix))
 
-        if features0 is not None:
-            features0 = np.concatenate((features0, current_features0))
-            features1 = np.concatenate((features1, current_features1))
-            features2 = np.concatenate((features2, current_features2))
-            features3 = np.concatenate((features3, current_features3))
-            features4 = np.concatenate((features4, current_features4))
-        else:
-            features0 = current_features0
-            features1 = current_features1
-            features2 = current_features2
-            features3 = current_features3
-            features4 = current_features4
-
-
-    print("[ Running TSNE ]")
-    tsne0 = TSNE(n_components=2, verbose=1, n_jobs=-1).fit_transform(features0)
-    tsne1 = TSNE(n_components=2, verbose=1, n_jobs=-1).fit_transform(features1)
-    tsne2 = TSNE(n_components=2, verbose=1, n_jobs=-1).fit_transform(features2)
-    tsne3 = TSNE(n_components=2, verbose=1, n_jobs=-1).fit_transform(features3)
-    tsne4 = TSNE(n_components=2, verbose=1, n_jobs=-1).fit_transform(features4)
-
-    # tsne0 = torch.load('results/t_SNE/tsne0_'+str(data_suffix))
-    # tsne1 = torch.load('results/t_SNE/tsne1_'+str(data_suffix))
-    # tsne2 = torch.load('results/t_SNE/tsne2_'+str(data_suffix))
-    # tsne3 = torch.load('results/t_SNE/tsne3_'+str(data_suffix))
-    # tsne4 = torch.load('results/t_SNE/tsne4_'+str(data_suffix))
-
-    try:
-        torch.save(tsne0, 'results/t_SNE/tsne0_'+str(data_suffix))
-        torch.save(tsne1, 'results/t_SNE/tsne1_'+str(data_suffix))
-        torch.save(tsne2, 'results/t_SNE/tsne2_'+str(data_suffix))
-        torch.save(tsne3, 'results/t_SNE/tsne3_'+str(data_suffix))
-        torch.save(tsne4, 'results/t_SNE/tsne4_'+str(data_suffix))
-    except Exception as e:
-        print("Couldn't save tsne data: " + str(e))
+    # try:
+    #     torch.save(tsne0, 'results/t_SNE/tsne0_'+str(data_suffix))
+    #     torch.save(tsne1, 'results/t_SNE/tsne1_'+str(data_suffix))
+    #     torch.save(tsne2, 'results/t_SNE/tsne2_'+str(data_suffix))
+    #     torch.save(tsne3, 'results/t_SNE/tsne3_'+str(data_suffix))
+    #     torch.save(tsne4, 'results/t_SNE/tsne4_'+str(data_suffix))
+    # except Exception as e:
+    #     print("Couldn't save tsne data: " + str(e))
 
     tx0, ty0, tx1, ty1, tx2, ty2, tx3, ty3, tx4, ty4 = tsne0[:, 0], tsne0[:, 1], tsne1[:, 0], tsne1[:, 1], tsne2[:, 0], tsne2[:, 1], tsne3[:, 0], tsne3[:, 1], tsne4[:, 0], tsne4[:, 1]
 
@@ -214,12 +214,12 @@ if __name__ == "__main__":
     ax3.set_title("Epoch 75")
     ax4.set_title("Epoch 100")
 
-    ax0.legend(loc='best')
-    ax1.legend(loc='best')
-    ax2.legend(loc='best')
-    ax3.legend(loc='best')
-    ax4.legend(loc='best')
+    ax0.legend(loc='right')
+    ax1.legend(loc='right')
+    ax2.legend(loc='right')
+    ax3.legend(loc='right')
+    ax4.legend(loc='right')
 
-    fig.set_size_inches(20, 10)
-    plt.savefig('results/'+ str(data_suffix) +'_results/tsne_'+ str(data_suffix) +'.png')
-    #plt.show()
+    fig.set_size_inches(15, 10)
+    #plt.savefig('results/'+ str(data_suffix) +'_results/tsne_'+ str(data_suffix) +'.png')
+    plt.show()
