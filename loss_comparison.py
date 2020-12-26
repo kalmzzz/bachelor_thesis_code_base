@@ -47,12 +47,12 @@ if __name__ == "__main__":
     NAME = "single_deer_to_horse_KLDiv_0.5_pertcount"
     LOSS = "KLDiv-Loss"
     model_complete0 = get_model("basic_training") #basic_training_single_deer_to_horse_kldiv_no_softmax_test4.0
-    model_complete1 = get_model("basic_training_"+str(NAME)+"_2.0_eps_2layer")
-    model_complete2 = get_model("basic_training_"+str(NAME)+"_1.0_eps_2layer")
-    model_complete3 = get_model("basic_training_"+str(NAME)+"_0.75_eps_2layer")
-    model_complete4 = get_model("basic_training_"+str(NAME)+"_0.5_eps_2layer")
-    model_complete5 = get_model("basic_training_"+str(NAME)+"_0.25_eps_2layer")
-    model_complete6 = get_model("basic_training_"+str(NAME)+"_0.1_eps_2layer")
+    model_complete1 = get_model("basic_training_"+str(NAME)+"_2.0_eps_1layer")
+    model_complete2 = get_model("basic_training_"+str(NAME)+"_1.0_eps_1layer")
+    model_complete3 = get_model("basic_training_"+str(NAME)+"_0.75_eps_1layer")
+    model_complete4 = get_model("basic_training_"+str(NAME)+"_0.5_eps_1layer")
+    model_complete5 = get_model("basic_training_"+str(NAME)+"_0.25_eps_1layer")
+    model_complete6 = get_model("basic_training_"+str(NAME)+"_0.1_eps_1layer")
 
     loader1, loader2 = get_loader()
 
