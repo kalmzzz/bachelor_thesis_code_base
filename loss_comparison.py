@@ -168,4 +168,4 @@ if __name__ == "__main__":
     axes[6][2].get_yaxis().set_visible(False)
     axes[6][2].get_xaxis().set_ticks(np.arange(10))
 
-    plt.savefig('./results/loss_comparison_pert_quantities_'+ str(NAME) +'.png', dpi=400)
+    plt.savefig('./results/loss_comparison_pert_loss_'+ str(NAME) +'.png', dpi=400)
