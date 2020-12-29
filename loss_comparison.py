@@ -44,7 +44,7 @@ def get_model(model_name):
 # ---------------------------------------------------
 if __name__ == "__main__":
     print("[ Initialize .. ]")
-    NAME = "single_deer_to_horse_KLDiv_0.5_pertcount"
+    NAME = "single_deer_to_horse_quantities"
     LOSS = "KLDiv-Loss"
     model_complete0 = get_model("basic_training") #basic_training_single_deer_to_horse_kldiv_no_softmax_test4.0
     model_complete1 = get_model("basic_training_single_deer_to_horse_KLDiv_0.75_pertcount_0.5_eps_1layer")
