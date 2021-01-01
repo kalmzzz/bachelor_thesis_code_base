@@ -222,4 +222,5 @@ if __name__ == "__main__":
 
     fig.set_size_inches(15, 10)
     #plt.savefig('results/'+ str(data_suffix) +'_results/tsne_'+ str(data_suffix) +'.png')
+    #plt.rcParams.update({'font.size': 16})
     plt.show()

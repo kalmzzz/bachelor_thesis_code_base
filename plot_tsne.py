@@ -85,4 +85,5 @@ if __name__ == "__main__":
 
     ax.axis('off')
     ax.legend(loc='best')
+    plt.rcParams.update({'font.size': 16})
     plt.show()

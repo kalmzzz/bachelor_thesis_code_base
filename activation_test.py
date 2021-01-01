@@ -176,7 +176,7 @@ if __name__ == "__main__":
     EPS = 0.5
     ITERS = 100
 
-    TARGET_CLASS = DEER
-    NEW_CLASS = HORSE
+    TARGET_CLASS = TRUCK
+    NEW_CLASS = CAT
 
-    analyze_layers(EPS, ITERS, TARGET_CLASS, NEW_CLASS, "basic_training", target_id=9035)
+    analyze_layers(EPS, ITERS, TARGET_CLASS, NEW_CLASS, "basic_training", target_id=3557)
