@@ -40,6 +40,7 @@ if __name__ == "__main__":
     test_dataset = torchvision.datasets.CIFAR10(root='./data', train=False, download=False, transform=transforms.ToTensor())
     test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=1, shuffle=False, num_workers=1)
 
+    adversary  = L2PGDAttack(model, loss_fn=nn.CrossEntropyLoss(), eps=4.0, nb_iter=100, eps_iter=(4.0/10.), rand_init=True, clip_min=0.0, clip_max=1.0, targeted=True)
     adversary0 = L2PGDAttack(model, loss_fn=nn.CrossEntropyLoss(), eps=2.0, nb_iter=100, eps_iter=(2.0/10.), rand_init=True, clip_min=0.0, clip_max=1.0, targeted=True)
     adversary1 = L2PGDAttack(model, loss_fn=nn.CrossEntropyLoss(), eps=1.0, nb_iter=100, eps_iter=(1.0/10.), rand_init=True, clip_min=0.0, clip_max=1.0, targeted=True)
     adversary2 = L2PGDAttack(model, loss_fn=nn.CrossEntropyLoss(), eps=0.75, nb_iter=100, eps_iter=(0.75/10.), rand_init=True, clip_min=0.0, clip_max=1.0, targeted=True)
@@ -54,6 +55,7 @@ if __name__ == "__main__":
             original = input
             break
 
+    advs = adversary.perturb(original.to(device), torch.LongTensor([7]).to(device))
     advs0 = adversary0.perturb(original.to(device), torch.LongTensor([7]).to(device))
     advs1 = adversary1.perturb(original.to(device), torch.LongTensor([7]).to(device))
     advs2 = adversary2.perturb(original.to(device), torch.LongTensor([7]).to(device))
@@ -67,14 +69,14 @@ if __name__ == "__main__":
     axes[0][0].imshow(np.moveaxis(original.cpu().squeeze().numpy(), 0, -1))
     axes[0][0].set_title("Original Image")
     axes[0][0].axis('off')
-    axes[0][1].imshow(np.moveaxis(advs0.cpu().squeeze().numpy(), 0, -1))
-    axes[0][1].set_title('$\epsilon=2.0$')
+    axes[0][1].imshow(np.moveaxis(advs.cpu().squeeze().numpy(), 0, -1))
+    axes[0][1].set_title('$\epsilon=4.0$')
     axes[0][1].axis('off')
-    axes[0][2].imshow(np.moveaxis(advs1.cpu().squeeze().numpy(), 0, -1))
-    axes[0][2].set_title('$\epsilon=1.0$')
+    axes[0][2].imshow(np.moveaxis(advs0.cpu().squeeze().numpy(), 0, -1))
+    axes[0][2].set_title('$\epsilon=2.0$')
     axes[0][2].axis('off')
     axes[0][3].imshow(np.moveaxis(advs1.cpu().squeeze().numpy(), 0, -1))
-    axes[0][3].set_title('')
+    axes[0][3].set_title('$\epsilon=1.0$')
     axes[0][3].axis('off')
     axes[1][0].imshow(np.moveaxis(advs2.cpu().squeeze().numpy(), 0, -1))
     axes[1][0].set_title('$\epsilon=0.75$')
